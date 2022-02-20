@@ -33,7 +33,6 @@ from stable_baselines3.common.evaluation import evaluate_policy
 depthOfCode = 10
 rows = 2
 cols = 2
-usedQubits = []
 maxSwapsPerTimeStep = math.floor(rows*cols/2)
 
 
@@ -109,11 +108,11 @@ def isExecutableState(state):
 def getPossibleActions(maxSwapsPerTimeStep):
     state = np.arange(rows*cols).reshape((rows,cols))
     
-    possibleActions = getPossibleActionsSub(state, usedQubits, maxSwapsPerTimeStep)
+    possibleActions = getPossibleActionsSub(state, [], maxSwapsPerTimeStep)
     
-    possibleActions = set(map(lambda x: tuple(sorted(x)), possibleActions ))
+    possibleActions = list(map(lambda x: tuple(sorted(x)), possibleActions ))
     
-    possibleActions = list(possibleActions)
+    possibleActions = (possibleActions)
     possibleActions.append((0, 0))
     
     return possibleActions
