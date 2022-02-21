@@ -15,12 +15,11 @@
 
 # In[2]:
 
-import numpy as np
-import math
-import sys
 
 from gym import Env
 from gym.spaces import Discrete, Box
+import numpy as np
+import math
 
 from stable_baselines3 import DQN
 from stable_baselines3.common.evaluation import evaluate_policy
@@ -30,11 +29,12 @@ from stable_baselines3.common.evaluation import evaluate_policy
 
 # In[3]:
 
+
 depthOfCode = 5
 rows = 2
 cols = 2
-usedQubits = []
 maxSwapsPerTimeStep = math.floor(rows*cols/2)
+
 
 # # Functions
 
@@ -74,10 +74,10 @@ def swap(state, actions):
 # getNeighbors returns a list of the qubit notations of all neighbors to a specific qubit. 
 # I.e. qubits above, below, right and left of the specific qubit.
 
-def getNeighbors(state, row, column):
+def getNeighbors(state, row_number, column_number):
     a = [[state[i][j] if  i >= 0 and i < len(state) and j >= 0 and j < len(state[0]) else -1
-                    for j in range(column-1, column+2)]
-                        for i in range(row-1, row+2)]
+                    for j in range(column_number-1, column_number+2)]
+                        for i in range(row_number-1, row_number+2)]
     return [a[0][1], a[1][0], a[1][2], a[2][1]]
 
 
@@ -108,10 +108,11 @@ def isExecutableState(state):
 def getPossibleActions(maxSwapsPerTimeStep):
     state = np.arange(rows*cols).reshape((rows,cols))
     
-    possibleActions = getPossibleActionsSub(state, usedQubits, maxSwapsPerTimeStep)
+    possibleActions = getPossibleActionsSub(state, [], maxSwapsPerTimeStep)
     
     possibleActions = list(map(lambda x: tuple(sorted(x)), possibleActions ))
     
+    possibleActions = (possibleActions)
     possibleActions.append((0, 0))
     
     return possibleActions
@@ -207,7 +208,7 @@ class Kvant(Env):
         self.state = makeState()
         
         #max amount of layers per episode
-        self.maxLayers = depthOfCode
+        self.maxLayers = depthOfCode + 10
         
     def step(self, action):
         
@@ -261,10 +262,9 @@ class Kvant(Env):
 env = Kvant()
 
 # Instantiate the agent
-model = DQN('MlpPolicy', env, verbose=1, exploration_final_eps = 0.1)
+model = DQN('MlpPolicy', env, verbose=1)
 # Train the agent
-model.learn(total_timesteps=int(1e6))
-
+model.learn(total_timesteps=int(1e5))
 # Save the agent
 model.save("KvantShit")
 del model  # delete trained model to demonstrate loading
@@ -280,11 +280,10 @@ model = DQN.load("KvantShit", env=env)
 #       this will be reflected here. To evaluate with original rewards,
 #       wrap environment in a "Monitor" wrapper before other wrappers.
 
-
 mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=10)
+
 
 # In[17]:
 
 
 print(mean_reward)
-
