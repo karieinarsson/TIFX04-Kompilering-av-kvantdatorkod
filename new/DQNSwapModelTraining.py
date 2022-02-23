@@ -1,4 +1,4 @@
-from MultiSwapEnviorment import SwapEnviorment
+from MultiSwapEnviorment_2 import SwapEnviorment
 
 import numpy as np
 import os
@@ -13,19 +13,24 @@ from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3 import DQN
 from stable_baselines3.common.evaluation import evaluate_policy
 
-depthOfCode = 1
+#env variables
+depth_of_code = 2
 rows = 3
 cols = 3
-maxSwapsPerTimeStep = -1
+max_swaps_per_time_step = 2
 
-total_timesteps = int(2e7)
-learning_starts = int(5e5)
-verbose = 0
-exploration_fraction = 0.3
+#model variables
+learning_starts = int(1e5)
+verbose = 1
+exploration_fraction = 0.5
 exploration_initial_eps = 1
 exploration_final_eps = 0.15
+batch_size = 512
+learning_rate = 0.001
 
-log_interval = 100
+#training variables
+total_timesteps = int(5e5)
+log_interval = 10
 
 
 class SaveOnBestTrainingRewardCallback(BaseCallback):
@@ -75,7 +80,7 @@ class SaveOnBestTrainingRewardCallback(BaseCallback):
 log_dir = "tmp/"
 os.makedirs(log_dir, exist_ok=True)
 
-env = SwapEnviorment(depthOfCode, rows, cols, maxSwapsPerTimeStep=maxSwapsPerTimeStep)
+env = SwapEnviorment(depth_of_code, rows, cols, max_swaps_per_time_step)
 
 env = Monitor(env, log_dir)
 
@@ -84,19 +89,26 @@ callback = SaveOnBestTrainingRewardCallback(check_freq=10000, log_dir=log_dir)
 #create the enviorment
 
 # Intantiate the agent
-model = DQN('MlpPolicy', env, verbose=verbose, learning_starts = learning_starts, 
+model = DQN('MlpPolicy', 
+            env, 
+            verbose=verbose, 
+            learning_starts = learning_starts, 
             exploration_fraction = exploration_fraction, 
             exploration_final_eps = exploration_final_eps, 
-            exploration_initial_eps = exploration_initial_eps) #CnnPolicy #Multi
+            exploration_initial_eps = exploration_initial_eps,
+            batch_size = batch_size,
+            optimize_memory_usage = True,
+            learning_rate = learning_rate
+            )
 
 # Train the agent
 model.learn(total_timesteps = total_timesteps, log_interval = log_interval, callback = callback)
 
 # Save the agent
-modelDir = "models/"
-modelName = "DQNModel("+ str(env.depthOfCode) + ", " + str(env.rows) + ", " + str(env.cols) + ")"
+model_dir = "models/"
+model_name = "DQNModel("+ str(env.depth_of_code) + "," + str(env.rows) + "," + str(env.cols) + ',' + str(env.max_swaps_per_time_step) + ")"
 
-model.save(modelDir + modelName)
+model.save(model_dir + model_name)
 
 
 # Evaluate the agent
@@ -106,6 +118,6 @@ model.save(modelDir + modelName)
 plot_results([log_dir], total_timesteps, results_plotter.X_TIMESTEPS, "DQN")
 plt.show()
 
-mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=10)
+mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=1000)
 print(mean_reward)
 

@@ -142,7 +142,7 @@ class SwapEnviorment(Env):
         self.cols = cols
         self.used = used
         if maxSwapsPerTimeStep < 0 or maxSwapsPerTimeStep > np.floor(self.rows*self.cols/2):
-            self.maxSwapsPerTimeStep = np.floor(self.rows*self.cols/2)
+            self.maxSwapsPerTimeStep = np.floor(self.rows*self.cols/4)
         else:
             self.maxSwapsPerTimeStep = maxSwapsPerTimeStep
 
