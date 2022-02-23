@@ -1,4 +1,4 @@
-from MultiSwapEnviorment import SwapEnviorment
+from MultiSwapEnviorment_2 import swap_enviorment
 
 from stable_baselines3 import DQN
 from stable_baselines3.common.evaluation import evaluate_policy
@@ -6,9 +6,9 @@ from stable_baselines3.common.evaluation import evaluate_policy
 
 modelDir = "models/"
 
-modelName = "DQNModel(1,3,3)"
+modelName = "DQNModel(1,3,3,2)"
 
-env = SwapEnviorment(1, 3, 3, maxSwapsPerTimeStep = 1)
+env = SwapEnviorment(1, 3, 3, 2)
 
 # Load the trained agent
 # NOTE: if you have loading issue, you can pass `print_system_info=True`
