@@ -6,7 +6,7 @@ from typing import List, Tuple
 
 # types
 Matrix = List[List[int]]
-Action = Tuple[int]
+Action = List[List[int]]
 
 #Our enviorment
 class swap_enviorment(Env):
@@ -99,8 +99,10 @@ class swap_enviorment(Env):
         for pos in range(self.rows * self.cols):
                 gate = self.state[pos]
                 if gate > 0:
-                    neighbors = [self.state[i] if i >= 0 and i < self.rows*self.cols else 0 
-                            for i in [pos+1, pos-1, pos+self.rows, pos-self.rows]]
+                    neighbors = [self.state[pos+i] if pos+i >= 0 and pos+i < self.rows*self.cols 
+                            and not (pos%self.rows == 0 and i == -1) 
+                            and not (pos%self.rows == self.rows-1 and i == 1) else 0 
+                            for i in [1, -1, self.rows, -self.rows]]
                     if not gate in neighbors:
                         return False
         return True
@@ -111,14 +113,17 @@ class swap_enviorment(Env):
     def get_possible_actions(self, iterations = None, used = None):
         if used is None:
             used = []
-        if iterations is None:
+        if iterations is None or iterations == -1:
             iterations = self.max_swaps_per_time_step
         m = np.arange(self.rows*self.cols)
         possible_actions = []
         for pos in m:
             if not pos in used:
-                neighbors = [m[i] if i >= 0 and i < self.rows*self.cols and not m[i] in used else -1 
-                                        for i in [pos+1, pos-1, pos+self.rows, pos-self.rows]]
+                neighbors = [m[pos+i] if pos+i >= 0 and pos+i < self.rows*self.cols 
+                        and not m[pos+i] in used
+                        and not (pos%self.rows == 0 and i == -1) 
+                        and not (pos%self.rows == self.rows-1 and i == 1) else -1 
+                        for i in [1, -1, self.rows, -self.rows]]
                 for target in neighbors:
                     if target != -1:
                         a = [pos, target]
