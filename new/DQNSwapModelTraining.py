@@ -1,4 +1,4 @@
-from MultiSwapEnviorment_2 import swap_enviorment
+from MultiSwapEnviorment import swap_enviorment
 
 import numpy as np
 import os
@@ -14,7 +14,7 @@ from stable_baselines3 import DQN
 from stable_baselines3.common.evaluation import evaluate_policy
 
 #env variables
-depth_of_code = 1
+depth_of_code = 3
 rows = 3
 cols = 3
 max_swaps_per_time_step = 2
@@ -84,7 +84,7 @@ env = swap_enviorment(depth_of_code, rows, cols, max_swaps_per_time_step)
 
 env = Monitor(env, log_dir)
 
-callback = SaveOnBestTrainingRewardCallback(check_freq=10000, log_dir=log_dir)
+callback = SaveOnBestTrainingRewardCallback(check_freq=1000, log_dir=log_dir)
 
 #create the enviorment
 

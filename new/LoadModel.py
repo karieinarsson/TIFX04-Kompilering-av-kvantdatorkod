@@ -4,11 +4,11 @@ from stable_baselines3 import DQN
 from stable_baselines3.common.evaluation import evaluate_policy
 
 
-modelDir = "models/"
+modelDir = "tmp/"
 
-modelName = "DQNModel(1,3,3,2)"
+modelName = "best_model.zip"
 
-env = SwapEnviorment(1, 3, 3, 2)
+env = swap_enviorment(1, 3, 3, 2)
 
 # Load the trained agent
 # NOTE: if you have loading issue, you can pass `print_system_info=True`
