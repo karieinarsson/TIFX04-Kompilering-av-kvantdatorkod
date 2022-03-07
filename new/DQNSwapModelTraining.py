@@ -14,10 +14,10 @@ from stable_baselines3 import DQN
 from stable_baselines3.common.evaluation import evaluate_policy
 
 #env variables
-depth_of_code = 3
+depth_of_code = 10
 rows = 3
 cols = 3
-max_swaps_per_time_step = 2
+max_swaps_per_time_step = -1
 
 #model variables
 learning_starts = int(1e5)

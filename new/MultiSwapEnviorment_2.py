@@ -3,17 +3,13 @@ from gym.spaces import Discrete, Box
 import numpy as np
 import math
 from typing import List, Tuple
-import copy
-from stable_baselines3.common.env_checker import check_env
 
 # types
 Matrix = List[List[int]]
 Action = List[int]
 
 def main():
-    env = swap_enviorment(10,3,3)
-    check_env(env)
-    
+    env = swap_enviorment(10, 3, 3)
 
 #Our enviorment
 class swap_enviorment(Env):
@@ -36,7 +32,7 @@ class swap_enviorment(Env):
         self.action_space = Discrete(len(self.possible_actions))
         print(self.action_space)
         self.observation_space = Box(low=0, high=math.floor(rows * cols/2),
-                                shape=(depth_of_code, rows, cols, ), dtype=np.uint8)
+                                shape=(depth_of_code*rows * cols, ), dtype=np.uint8)
         #The start state
         self.state = self.make_state()
         #max amount of layers per episode
@@ -44,27 +40,26 @@ class swap_enviorment(Env):
 
 
     def step(self, action: Discrete) -> Tuple[List[int], int, bool, 'info']:
-        self.state = self.state.reshape((self.depth_of_code, self.rows*self.cols))
         self.max_steps_per_episode -= 1
-        swap_matrix = self.possible_actions[action]
-        self.state = np.matmul(self.state, swap_matrix)
+        actions = self.possible_actions[action]
+        self.swap(actions)
         # Rewards 
         reward = -1
         if self.is_executable_state():
-            if action == 0: reward = 0
+            if actions == (0,0): reward = 0
             # remove the exicutable slice and add a new random slice at the tail
-            self.state = np.roll(self.state, -1, axis=0)
-            self.state[self.depth_of_code - 1] = self.make_state_slice()
+            self.update_state()
             self.max_layers -= 1
             # we are not done except if this was the last layer we can work on this episode
+            #if self.max_layers <= 0: done = True
+            #else: done = False
             done = self.max_layers <= 0
         elif self.max_steps_per_episode <= 0:
             done = True
             reward = -400
         else: done = False
         info = {}
-
-        self.state = self.state.reshape((self.depth_of_code, self.rows, self.cols))
+        
         return self.state, reward, done, info
         
 
@@ -78,6 +73,25 @@ class swap_enviorment(Env):
         self.max_steps_per_episode = 200
         return self.state
 
+
+# swap is given actions which is a tuple of actions or a action, where every action is a tuple with the values
+# of two qubits (x, y) whos values should be swaped. x and y are ints between 0 and 8 corresponding to 
+# the following qubit notation:
+#         [[0, 1, 2],
+#          [3, 4, 5],
+#          [6, 7, 8]]
+
+# ex. of a tuple of actions: ((0, 3), (4, 5), (7, 8))
+# ex. of a single action: (0, 1)
+
+# in the case of a single action we make a list out of it so it's iterable to minimize code
+    def swap(self, actions: List[Action]) -> None:
+        for action in actions:
+            pos0, pos1 = action
+            for i in range(self.depth_of_code):
+                x = i * self.cols * self.rows
+                self.state[pos0+x], self.state[pos1+x] = self.state[pos1+x], self.state[pos0+x]
+
 #                                             [[1,0,0], [[1,0,0],   [[1,0,0],         [[1,0,0],  
 # is_exicutable_state takes in a state like [  [1,0,2],  [1,0,2], ,  [1,0,2], , ... ,  [1,0,2], ]  
 #                                              [2,0,0]]  [2,0,0]]    [2,0,0]]          [2,0,0]] 
@@ -86,14 +100,14 @@ class swap_enviorment(Env):
 
     def is_executable_state(self) -> bool:
         for pos in range(self.rows * self.cols):
-            gate = self.state[0][pos]
-            if gate > 0:
-                neighbors = [self.state[0][pos+i] if pos+i >= 0 and pos+i < self.rows*self.cols 
-                        and not (pos%self.rows == 0 and i == -1) 
-                        and not (pos%self.rows == self.rows-1 and i == 1) else 0 
-                        for i in [1, -1, self.rows, -self.rows]]
-                if not gate in neighbors:
-                    return False
+                gate = self.state[pos]
+                if gate > 0:
+                    neighbors = [self.state[pos+i] if pos+i >= 0 and pos+i < self.rows*self.cols 
+                            and not (pos%self.rows == 0 and i == -1) 
+                            and not (pos%self.rows == self.rows-1 and i == 1) else 0 
+                            for i in [1, -1, self.rows, -self.rows]]
+                    if not gate in neighbors:
+                        return False
         return True
 
 # We use this once to get all the different swap combinations. I.e. all acceptable combinations of one to four
@@ -130,19 +144,7 @@ class swap_enviorment(Env):
                                         possible_actions.append(action)
 
         if iterations == self.max_swaps_per_time_step:
-            return_possible_actions = []
-            return_possible_actions.append(np.identity(self.rows*self.cols))
-            for action in possible_actions:
-                m = np.identity(self.rows*self.cols)
-                for swap in action:
-                    pos1, pos2 = swap
-                    m[pos1][pos1] = 0
-                    m[pos2][pos2] = 0
-                    m[pos1][pos2] = 1
-                    m[pos2][pos1] = 1
-                return_possible_actions.append(m)
-            return return_possible_actions
-        
+            possible_actions.append([[0,0]])
         return possible_actions
 
 # Creates a shuffled Matrix simulating a slice of quantum code with one to max amount 
@@ -166,10 +168,16 @@ class swap_enviorment(Env):
 
     # Makes a state out of depth_of_code amount of slices
     def make_state(self) -> List[int]:
-        state = np.zeros((self.depth_of_code, self.rows, self.cols))
+        state = np.zeros((self.depth_of_code, self.rows*self.cols))
         for i in range(len(state)):
-            state[i] = self.make_state_slice().reshape((self.rows, self.cols))
-        return state
+            state[i] = self.make_state_slice()
+        return state.reshape(self.depth_of_code * self.rows * self.cols)
+
+
+    def update_state(self) -> None:
+        tmp = np.roll(self.state.reshape((self.depth_of_code, self.rows*self.cols)), -1, axis=0)
+        tmp[self.depth_of_code - 1] = self.make_state_slice()
+        self.state = tmp.reshape(self.depth_of_code * self.rows * self.cols)
 
 if __name__ == '__main__':
     main()
