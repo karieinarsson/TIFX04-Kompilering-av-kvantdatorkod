@@ -1,6 +1,7 @@
 from itertools import zip_longest
 from typing import Dict, List, Tuple, Type, Union
 
+import numpy as np
 import gym
 import torch as th
 from torch import nn
@@ -64,21 +65,24 @@ class NatureCNN(BaseFeaturesExtractor):
         super(NatureCNN, self).__init__(observation_space, features_dim)
         # We assume CxHxW images (channels first)
         # Re-ordering will be done by pre-preprocessing or wrapper
-        assert is_image_space(observation_space, check_channels=False), (
-            "You should use NatureCNN "
-            f"only with images not with {observation_space}\n"
-            "(you are probably using `CnnPolicy` instead of `MlpPolicy` or `MultiInputPolicy`)\n"
-            "If you are using a custom environment,\n"
-            "please check it using our env checker:\n"
-            "https://stable-baselines3.readthedocs.io/en/master/common/env_checker.html"
-        )
-        n_input_channels = observation_space.shape[0]
+        #assert is_image_space(observation_space, check_channels=False), (
+        #    "You should use NatureCNN "
+        #    f"only with images not with {observation_space}\n"
+        #    "(you are probably using `CnnPolicy` instead of `MlpPolicy` or `MultiInputPolicy`)\n"
+        #    "If you are using a custom environment,\n"
+        #    "please check it using our env checker:\n"
+        #    "https://stable-baselines3.readthedocs.io/en/master/common/env_checker.html"
+        #)
+        n_input_channels, rows, cols = observation_space.shape
+        print(n_input_channels, rows, cols)
+        x = 4 if rows >= 8 else int(np.floor(rows/2))
+        y = 4 if cols >= 8 else int(np.floor(cols/2))
         self.cnn = nn.Sequential(
-            nn.Conv2d(n_input_channels, 32, kernel_size=8, stride=4, padding=0),
+            nn.Conv2d(n_input_channels, 32, kernel_size=(x*2, y*2), stride=1, padding=0),
             nn.ReLU(),
-            nn.Conv2d(32, 64, kernel_size=4, stride=2, padding=0),
+            nn.Conv2d(32, 64, kernel_size=(x, y), stride=1, padding=0),
             nn.ReLU(),
-            nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=0),
+            nn.Conv2d(64, 64, kernel_size=(x, y), stride=1, padding=0),
             nn.ReLU(),
             nn.Flatten(),
         )

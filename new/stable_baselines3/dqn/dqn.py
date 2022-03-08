@@ -177,6 +177,7 @@ class DQN(OffPolicyAlgorithm):
         losses = []
         for _ in range(gradient_steps):
             # Sample replay buffer
+            # replay_data is a list of bufferdata with the range of batchsize
             replay_data = self.replay_buffer.sample(batch_size, env=self._vec_normalize_env)
 
             with th.no_grad():

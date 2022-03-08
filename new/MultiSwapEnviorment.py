@@ -35,7 +35,7 @@ class swap_enviorment(Env):
         #Number of actions we can take
         self.action_space = Discrete(len(self.possible_actions))
         print(self.action_space)
-        self.observation_space = Box(low=0, high=math.floor(rows * cols/2),
+        self.observation_space = Box(low=0, high=np.floor(self.rows * self.cols / 2),
                                 shape=(depth_of_code, rows, cols, ), dtype=np.uint8)
         #The start state
         self.state = self.make_state()
@@ -159,8 +159,8 @@ class swap_enviorment(Env):
         max_gates = math.floor(self.rows*self.cols/2)
         state_slice = np.zeros(self.rows*self.cols)
         for i in range(1, np.random.choice(range(2, max_gates+2))):
-            state_slice[i] = i
-            state_slice[i+max_gates] = i
+            state_slice[i-1] = i
+            state_slice[i-1+max_gates] = i
         np.random.shuffle(state_slice)
         return state_slice
 

@@ -24,12 +24,12 @@ learning_starts = int(1e5)
 verbose = 1
 exploration_fraction = 0.5
 exploration_initial_eps = 1
-exploration_final_eps = 0.15
+exploration_final_eps = 0.1
 batch_size = 512
 learning_rate = 0.001
 
 #training variables
-total_timesteps = int(5e5)
+total_timesteps = int(1e6)
 log_interval = 10
 
 
@@ -89,7 +89,7 @@ callback = SaveOnBestTrainingRewardCallback(check_freq=1000, log_dir=log_dir)
 #create the enviorment
 
 # Intantiate the agent
-model = DQN('MlpPolicy', 
+model = DQN('CnnPolicy', 
             env, 
             verbose=verbose, 
             learning_starts = learning_starts, 
