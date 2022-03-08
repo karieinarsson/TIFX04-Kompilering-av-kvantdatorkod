@@ -14,7 +14,7 @@ from stable_baselines3 import DQN
 from stable_baselines3.common.evaluation import evaluate_policy
 
 #env variables
-depth_of_code = 10
+depth_of_code = 2
 rows = 3
 cols = 3
 max_swaps_per_time_step = -1
@@ -25,11 +25,14 @@ verbose = 1
 exploration_fraction = 0.5
 exploration_initial_eps = 1
 exploration_final_eps = 0.1
-batch_size = 512
+batch_size = 128
 learning_rate = 0.001
+tau = 0.5
+gamma = 0.99
+train_freq = 10
 
 #training variables
-total_timesteps = int(1e6)
+total_timesteps = int(5e5)
 log_interval = 10
 
 
@@ -91,7 +94,10 @@ callback = SaveOnBestTrainingRewardCallback(check_freq=1000, log_dir=log_dir)
 # Intantiate the agent
 model = DQN('CnnPolicy', 
             env, 
-            verbose=verbose, 
+            verbose = verbose,
+            train_freq = train_freq,
+            gamma = gamma,
+            tau = tau,
             learning_starts = learning_starts, 
             exploration_fraction = exploration_fraction, 
             exploration_final_eps = exploration_final_eps, 
@@ -99,7 +105,7 @@ model = DQN('CnnPolicy',
             batch_size = batch_size,
             optimize_memory_usage = True,
             learning_rate = learning_rate
-            )
+        )
 
 # Train the agent
 model.learn(total_timesteps = total_timesteps, log_interval = log_interval, callback = callback)
