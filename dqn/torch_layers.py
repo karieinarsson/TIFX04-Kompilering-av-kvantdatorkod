@@ -48,7 +48,7 @@ class FlattenExtractor(BaseFeaturesExtractor):
     def forward(self, observations: th.Tensor) -> th.Tensor:
         return self.flatten(observations)
 
-
+#TODO
 class NatureCNN(BaseFeaturesExtractor):
     """
     CNN from DQN nature paper:
@@ -65,25 +65,27 @@ class NatureCNN(BaseFeaturesExtractor):
         super(NatureCNN, self).__init__(observation_space, features_dim)
         # We assume CxHxW images (channels first)
         # Re-ordering will be done by pre-preprocessing or wrapper
-        n_input_channels, rows, cols = observation_space.shape
-        print(n_input_channels, rows, cols)
-        x = 4 if rows >= 8 else int(np.floor(rows/2))
-        y = 4 if cols >= 8 else int(np.floor(cols/2))
+        n_input_channels, depth_of_code, rows, cols = observation_space.shape
+        w = 3 if rows >= 5 else rows // 2
+        h = 3 if cols >= 5 else cols // 2
+        d = depth_of_code // 2
         self.cnn = nn.Sequential(
-            nn.Conv2d(n_input_channels, 32, kernel_size=(rows, cols), stride=1, padding=0),
-            nn.ReLU(),
-            nn.Conv2d(32, 64, kernel_size=(x, y), stride=1, padding=0),
-            nn.ReLU(),
-            nn.Conv2d(64, 64, kernel_size=(x, y), stride=1, padding=0),
-            nn.ReLU(),
+            nn.Conv3d(n_input_channels, 32, kernel_size=(2, w, h), padding=(0, 2, 2)),
+            nn.Tanh(),
+            nn.Conv3d(32, 16, kernel_size=(2, w, h)),
+            nn.Tanh(),
             nn.Flatten(),
         )
 
         # Compute shape by doing one forward pass
         with th.no_grad():
-            n_flatten = self.cnn(th.as_tensor(observation_space.sample()[None]).float()).shape[1]
-
-        self.linear = nn.Sequential(nn.Linear(n_flatten, features_dim), nn.ReLU())
+            n_flatten = self.cnn(th.as_tensor(observation_space.sample()).float()[None]).shape[1]
+        self.linear = nn.Sequential(
+                nn.Linear(n_flatten, features_dim),
+                nn.ReLU(),
+                #max(reward + target_net(observations->action))
+                )
+        
 
     def forward(self, observations: th.Tensor) -> th.Tensor:
         return self.linear(self.cnn(observations))

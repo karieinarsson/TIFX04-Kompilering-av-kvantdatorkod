@@ -6,12 +6,13 @@ import numpy as np
 import torch as th
 from torch.nn import functional as F
 
-from stable_baselines3.common.buffers import ReplayBuffer
-from stable_baselines3.common.off_policy_algorithm import OffPolicyAlgorithm
-from stable_baselines3.common.preprocessing import maybe_transpose
+from dqn.buffers import ReplayBuffer
+from dqn.policies import DQNPolicy
+from dqn.off_policy_algorithm import OffPolicyAlgorithm
+
 from stable_baselines3.common.type_aliases import GymEnv, MaybeCallback, Schedule
 from stable_baselines3.common.utils import get_linear_fn, is_vectorized_observation, polyak_update
-from dqn.policies import DQNPolicy
+from stable_baselines3.common.preprocessing import maybe_transpose
 
 
 class DQN(OffPolicyAlgorithm):
@@ -188,7 +189,7 @@ class DQN(OffPolicyAlgorithm):
                 # Avoid potential broadcast issue
                 next_q_values = next_q_values.reshape(-1, 1)
                 # 1-step TD target
-                target_q_values = replay_data.rewards + (1 - replay_data.dones) * self.gamma * next_q_values
+                target_q_values = replay_data.rewards + self.gamma * next_q_values
 
             # Get current Q-values estimates
             current_q_values = self.q_net(replay_data.observations)
@@ -203,6 +204,7 @@ class DQN(OffPolicyAlgorithm):
             # Optimize the policy
             self.policy.optimizer.zero_grad()
             loss.backward()
+
             # Clip gradient norm
             th.nn.utils.clip_grad_norm_(self.policy.parameters(), self.max_grad_norm)
             self.policy.optimizer.step()

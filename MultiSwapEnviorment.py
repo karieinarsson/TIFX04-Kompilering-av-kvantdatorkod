@@ -36,7 +36,7 @@ class swap_enviorment(Env):
         self.action_space = Discrete(len(self.possible_actions))
         print(self.action_space)
         self.observation_space = Box(low=0, high=np.floor(self.rows * self.cols / 2),
-                                shape=(depth_of_code, rows, cols, ), dtype=np.uint8)
+                                shape=(1, depth_of_code, rows, cols, ), dtype=np.uint8)
         #The start state
         self.state = self.make_state()
         #max amount of layers per episode
