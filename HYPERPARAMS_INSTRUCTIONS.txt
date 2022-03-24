@@ -1,0 +1,14 @@
+Lägg till detta till rl-stable-baselines3-zoo/hyperparams/dqn.yml
+
+MultiSwapEnv-v0:
+  policy: 'MlpPolicy'
+  learning_starts: 10000
+  exploration_fraction: 0.5
+  exploration_initial_eps: 1
+  exploration_final_eps: 0.1
+  batch_size: 128
+  learning_rate: 0.001
+  tau: 0.5
+  gamma: 0.99
+  train_freq: 10
+  n_timesteps: 1000000

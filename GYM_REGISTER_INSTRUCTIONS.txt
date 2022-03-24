@@ -1,0 +1,1 @@
+https://stackoverflow.com/questions/52727233/how-can-i-register-a-custom-environment-in-openais-gym
