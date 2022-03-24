@@ -10,6 +10,10 @@ from stable_baselines3.common.env_checker import check_env
 Matrix = List[List[int]]
 Action = List[int]
 
+#pygame variables
+PG_WIDTH  = 500
+PG_HEIGHT = 500
+
 def main():
     env = swap_enviorment(10,3,3)
     check_env(env)
@@ -41,7 +45,9 @@ class swap_enviorment(Env):
         self.state = self.make_state()
         #max amount of layers per episode
         self.max_layers = self.depth_of_code
-
+        
+        #pygame screen initialization
+        self.screen = None
 
     def step(self, action: Discrete) -> Tuple[List[int], int, bool, 'info']:
         self.state = self.state.reshape((self.depth_of_code, self.rows*self.cols))
@@ -69,7 +75,14 @@ class swap_enviorment(Env):
         
 
     def render(self, mode = "human"): 
-        pass
+        if self.screen is None:
+            pygame.init()
+            pygame.display.init()
+            self.screen = pygame.display.set_mode((PG_WIDTH,PG_HEIGHT))
+
+        self.surface = pygame.Surface(self.screen.get_size())
+
+        pygame.draw.rect(self.surface,(255,255,255),self.surface.get_rect())
     
 
     def reset(self) -> List[int]:
