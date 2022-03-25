@@ -10,9 +10,18 @@ from stable_baselines3.common.env_checker import check_env
 Matrix = List[List[int]]
 Action = List[int]
 
-#pygame variables
+#pygame constants
 PG_WIDTH  = 500
 PG_HEIGHT = 500
+X_START   = 100
+Y_START   = 100
+#Colors
+WHITE = (255,255,255)
+BLACK = (0,0,0)
+BLUE  = (0,0,255)
+GREEN = (0,255,0)
+RED   = (255,0,0)
+
 
 def main():
     env = swap_enviorment(10,3,3)
@@ -48,6 +57,7 @@ class swap_enviorment(Env):
         
         #pygame screen initialization
         self.screen = None
+        self.isopen = True
 
     def step(self, action: Discrete) -> Tuple[List[int], int, bool, 'info']:
         self.state = self.state.reshape((self.depth_of_code, self.rows*self.cols))
@@ -79,11 +89,62 @@ class swap_enviorment(Env):
             pygame.init()
             pygame.display.init()
             self.screen = pygame.display.set_mode((PG_WIDTH,PG_HEIGHT))
+            num_font = pygame.font.SysFont(None,30)
+            img0 = num_font.render('0',True,GREEN)
+            img1 = num_font.render('1',True,GREEN)
+            img2 = num_font.render('2',True,GREEN)
+            img3 = num_font.render('3',True,GREEN)
+            img4 = num_font.render('4',True,GREEN)
+            img5 = num_font.render('5',True,GREEN)
+            img6 = num_font.render('6',True,GREEN)
+            img7 = num_font.render('7',True,GREEN)
+            img8 = num_font.render('8',True,GREEN)
+            img9 = num_font.render('9',True,GREEN)
 
         self.surface = pygame.Surface(self.screen.get_size())
 
         pygame.draw.rect(self.surface,(255,255,255),self.surface.get_rect())
+        
+        
+        dict={
+            0:img0,
+            1:img1,
+            2:img2,
+            3:img3,
+            4:img4,
+            5:img5,
+            6:img6,
+            7:img7,
+            8:img8,
+            9:img9
+            }
     
+    
+        for j in range(1,self.cols+1):
+            for i in range(1,self.rows+1):
+                self.surface.blit(number(self.state[i-1][j-1]),((X_START*j)-5,(Y_START*i)-8))
+
+        
+        for j in range(1,self.cols+1):
+            for i in range(1,self.rows+1):
+                pygame.draw.circle(self.surface,WHITE,((X_START*j),y+(Y_START*i)),20)
+                if j < self.rows:
+                    pygame.draw.line(self.surface,WHITE,((X_START*j),(Y_START*i)),((X_START*(j+1)),((Y_START*i))),4)
+                if i < self.cols: 
+                    pygame.draw.line(self.surface,WHITE,((X_START*j),(Y_START*i)),((X_START*j),((Y_START*(i+1)))),4)
+        
+        self.screen.blit(self.surface,(0,0))
+
+        pygame.event.pump()
+        pygame.display.flip()
+
+        return self.isopen
+
+    def close():
+        if self.isopen is not None:
+            pygame.display.quit()
+            pygame.quit()
+            self.isopen = False
 
     def reset(self) -> List[int]:
         self.state = self.make_state()
