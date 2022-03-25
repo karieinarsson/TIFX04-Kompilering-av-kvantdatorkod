@@ -464,10 +464,8 @@ class OffPolicyAlgorithm(BaseAlgorithm):
     def _store_transition(
         self,
         replay_buffer: ReplayBuffer,
-        buffer_action: np.ndarray,
         new_obs: Union[np.ndarray, Dict[str, np.ndarray]],
         reward: np.ndarray,
-        dones: np.ndarray,
     ) -> None:
         """
         Store transition in the replay buffer.
@@ -485,35 +483,18 @@ class OffPolicyAlgorithm(BaseAlgorithm):
         """
         # Store only the unnormalized version
         if self._vec_normalize_env is not None:
-            new_obs_ = self._vec_normalize_env.get_original_obs()
             reward_ = self._vec_normalize_env.get_original_reward()
         else:
             # Avoid changing the original ones
             self._last_original_obs, new_obs_, reward_ = self._last_obs, new_obs, reward
 
-        # Avoid modification by reference
-        next_obs = deepcopy(new_obs_)
-        # As the VecEnv resets automatically, new_obs is already the
-        # first observation of the next episode
-        for i, done in enumerate(dones):
-            if done is not None:
-                if isinstance(next_obs, dict):
-                    if self._vec_normalize_env is not None:
-                        next_obs_ = self._vec_normalize_env.unnormalize_obs(next_obs_)
-                    # Replace next obs for the correct envs
-                    for key in next_obs.keys():
-                        next_obs[key][i] = next_obs_[key]
-                else:
-                    # VecNormalize normalizes the terminal observation
-                    if self._vec_normalize_env is not None:
-                        next_obs[i] = self._vec_normalize_env.unnormalize_obs(next_obs[i, :])
+        with th.no_grad():
+            V = self.q_net_target(replay_data.next_observations)
 
         replay_buffer.add(
             self._last_original_obs,
-            next_obs,
-            buffer_action,
             reward_,
-            dones,
+            V,
         )
 
         self._last_obs = new_obs
@@ -575,46 +556,45 @@ class OffPolicyAlgorithm(BaseAlgorithm):
             if self.use_sde and self.sde_sample_freq > 0 and num_collected_steps % self.sde_sample_freq == 0:
                 # Sample a new noise matrix
                 self.actor.reset_noise(env.num_envs)
-
+            
             # Select action randomly or according to policy
-            actions, buffer_actions = self._sample_action(learning_starts, action_noise, env.num_envs)
+            for action in range(env.action_space.n):
+                # Rescale and perform action
+                new_obs, rewards, dones, infos = env.step(action)
 
-            # Rescale and perform action
-            new_obs, rewards, dones, infos = env.step(actions)
+                self.num_timesteps += env.num_envs
+                num_collected_steps += 1
 
-            self.num_timesteps += env.num_envs
-            num_collected_steps += 1
+                # Give access to local variables
+                callback.update_locals(locals())
+                # Only stop training if return value is False, not when it is None.
+                if callback.on_step() is False:
+                    return RolloutReturn(num_collected_steps * env.num_envs, num_collected_episodes, continue_training=False)
 
-            # Give access to local variables
-            callback.update_locals(locals())
-            # Only stop training if return value is False, not when it is None.
-            if callback.on_step() is False:
-                return RolloutReturn(num_collected_steps * env.num_envs, num_collected_episodes, continue_training=False)
-
-            # Retrieve reward and episode length if using Monitor wrapper
-            self._update_info_buffer(infos, dones)
+                # Retrieve reward and episode length if using Monitor wrapper
+                self._update_info_buffer(infos, dones)
 
 #TODO
-            # Store data in replay buffer (normalized action and unnormalized observation)
-            self._store_transition(replay_buffer, buffer_actions, new_obs, rewards, dones)
+                # Store data in replay buffer (normalized action and unnormalized observation)
+                self._store_transition(replay_buffer, new_obs, rewards)
 
-            self._update_current_progress_remaining(self.num_timesteps, self._total_timesteps)
+                self._update_current_progress_remaining(self.num_timesteps, self._total_timesteps)
 
-            # For DQN, check if the target network should be updated
-            # and update the exploration schedule
-            # For SAC/TD3, the update is dones as the same time as the gradient update
-            # see https://github.com/hill-a/stable-baselines/issues/900
-            self._on_step()
+                # For DQN, check if the target network should be updated
+                # and update the exploration schedule
+                # For SAC/TD3, the update is dones as the same time as the gradient update
+                # see https://github.com/hill-a/stable-baselines/issues/900
+                self._on_step()
 
-            for idx, done in enumerate(dones):
-                if done:
-                    # Update stats
-                    num_collected_episodes += 1
-                    self._episode_num += 1
+                for idx, done in enumerate(dones):
+                    if done:
+                        # Update stats
+                        num_collected_episodes += 1
+                        self._episode_num += 1
 
-                    # Log training infos
-                    if log_interval is not None and self._episode_num % log_interval == 0:
-                        self._dump_logs()
+                        # Log training infos
+                        if log_interval is not None and self._episode_num % log_interval == 0:
+                            self._dump_logs()
 
         callback.on_rollout_end()
 

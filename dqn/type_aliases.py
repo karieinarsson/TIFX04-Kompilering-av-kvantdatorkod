@@ -40,19 +40,15 @@ class DictRolloutBufferSamples(RolloutBufferSamples):
 
 
 class ReplayBufferSamples(NamedTuple):
-    observations: th.Tensor
-    actions: th.Tensor
-    next_observations: th.Tensor
-    dones: th.Tensor
-    rewards: th.Tensor
+    s: th.Tensor
+    V: th.Tensor
+    r: th.Tensor
 
 
 class DictReplayBufferSamples(ReplayBufferSamples):
-    observations: TensorDict
-    actions: th.Tensor
-    next_observations: th.Tensor
-    dones: th.Tensor
-    rewards: th.Tensor
+    s: TensorDict
+    V: th.Tensor
+    r: th.Tensor
 
 
 class RolloutReturn(NamedTuple):

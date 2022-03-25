@@ -83,7 +83,8 @@ class NatureCNN(BaseFeaturesExtractor):
         self.linear = nn.Sequential(
                 nn.Linear(n_flatten, features_dim),
                 nn.ReLU(),
-                #max(reward + target_net(observations->action))
+                nn.Linear(features_dim, 1),
+                nn.Softmax(),
                 )
         
 
