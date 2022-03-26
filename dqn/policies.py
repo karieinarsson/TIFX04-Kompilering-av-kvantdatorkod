@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional, Type
 import gym
 import torch as th
 from torch import nn
+from gym.spaces import Discrete
 
 from stable_baselines3.common.policies import BasePolicy, register_policy
 from stable_baselines3.common.torch_layers import (
@@ -241,7 +242,7 @@ class CnnPolicy(DQNPolicy):
     ):
         super(CnnPolicy, self).__init__(
             observation_space,
-            action_space,
+            Discrete(1),
             lr_schedule,
             net_arch,
             activation_fn,

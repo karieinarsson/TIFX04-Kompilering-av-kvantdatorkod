@@ -466,14 +466,14 @@ class OffPolicyAlgorithm(BaseAlgorithm):
                     if self._vec_normalize_env is not None:
                         next_obs[i] = self._vec_normalize_env.unnormalize_obs(next_obs[i, :])
         
-        V_next_obs = np.zeros(env.num_envs)
+        V_next_obs = np.zeros((env.num_envs,))
        
         tensor_new_obs = torch.from_numpy(next_obs)
 
         with th.no_grad():
             V_next_obs = self.q_net_target(tensor_new_obs)
         
-        print(V_next_obs[0])
+        V_next_obs = np.array([ x for x in V_next_obs])
 
         replay_buffer.add(
             self._last_original_obs,

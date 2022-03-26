@@ -23,7 +23,7 @@ class BaseFeaturesExtractor(nn.Module):
         super(BaseFeaturesExtractor, self).__init__()
         assert features_dim > 0
         self._observation_space = observation_space
-        self._features_dim = 1
+        self._features_dim = features_dim
 
     @property
     def features_dim(self) -> int:
@@ -82,16 +82,13 @@ class NatureCNN(BaseFeaturesExtractor):
             n_flatten = self.cnn(th.as_tensor(observation_space.sample()).float()[None]).shape[1]
         
         self.linear = nn.Sequential(
-                nn.Linear(n_flatten, features_dim),
-                nn.ReLU(),
-                nn.Linear(features_dim, 1),
-                nn.Softmax(),
-                )
+            nn.Linear(n_flatten, features_dim),
+            nn.ReLU(),
+        )
         
 
     def forward(self, observations: th.Tensor) -> th.Tensor:
-        returnTensor =  self.linear(self.cnn(observations))
-        print(returnTensor)
+        returnTensor = self.linear(self.cnn(observations))
         return returnTensor
 
 

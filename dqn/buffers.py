@@ -194,8 +194,8 @@ class ReplayBuffer(BaseBuffer):
 
         self.observations = np.zeros((self.buffer_size, self.n_envs) + self.obs_shape, dtype=observation_space.dtype)
 
-        self.V_next_observations = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
-        self.rewards = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
+        self.V_next_observations    = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
+        self.rewards                = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
         
         self.handle_timeout_termination = handle_timeout_termination
         self.timeouts = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
@@ -229,8 +229,7 @@ class ReplayBuffer(BaseBuffer):
 
         # Copy to avoid modification by reference
         self.observations[self.pos] = np.array(obs).copy()
-
-        
+        tmp = np.array(V_next_obs).copy()
         self.V_next_observations[self.pos] = np.array(V_next_obs).copy()
         self.rewards[self.pos] = np.array(reward).copy()
 
@@ -272,7 +271,7 @@ class ReplayBuffer(BaseBuffer):
 
         data = (
             self._normalize_obs(self.observations[batch_inds, env_indices, :], env),
-            next_obs,
+            self._normalize_reward(self.V_next_observations[batch_inds, env_indices].reshape(-1, 1), env),
             self._normalize_reward(self.rewards[batch_inds, env_indices].reshape(-1, 1), env),
         )
         return ReplayBufferSamples(*tuple(map(self.to_torch, data)))

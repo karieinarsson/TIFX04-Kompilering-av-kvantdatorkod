@@ -182,15 +182,10 @@ class DQN(OffPolicyAlgorithm):
             replay_data = self.replay_buffer.sample(batch_size, env=self._vec_normalize_env)
 
             with th.no_grad():
-                print(replay_data.V_next_observations)
-                print(replay_data.rewards)
                 target_q_values = replay_data.rewards + self.gamma * replay_data.V_next_observations
 
             # Get current Q-values estimates
             current_q_values = self.q_net(replay_data.observations)
-
-            # Retrieve the q-values for the actions from the replay buffer
-            current_q_values = th.gather(current_q_values, dim=1, index=replay_data.actions.long())
 
             # Compute Huber loss (less sensitive to outliers)
             loss = F.smooth_l1_loss(current_q_values, target_q_values)
