@@ -23,7 +23,7 @@ class BaseFeaturesExtractor(nn.Module):
         super(BaseFeaturesExtractor, self).__init__()
         assert features_dim > 0
         self._observation_space = observation_space
-        self._features_dim = features_dim
+        self._features_dim = 1
 
     @property
     def features_dim(self) -> int:
@@ -61,7 +61,7 @@ class NatureCNN(BaseFeaturesExtractor):
         This corresponds to the number of unit for the last layer.
     """
 
-    def __init__(self, observation_space: gym.spaces.Box, features_dim: int = 512):
+    def __init__(self, observation_space: gym.spaces.Box, features_dim: int = 1):
         super(NatureCNN, self).__init__(observation_space, features_dim)
         # We assume CxHxW images (channels first)
         # Re-ordering will be done by pre-preprocessing or wrapper
@@ -70,9 +70,9 @@ class NatureCNN(BaseFeaturesExtractor):
         h = 3 if cols >= 5 else cols // 2
         d = depth_of_code // 2
         self.cnn = nn.Sequential(
-            nn.Conv3d(n_input_channels, 32, kernel_size=(2, w, h), padding=(0, 2, 2)),
+            nn.Conv3d(n_input_channels, 32, kernel_size=2, padding=1),
             nn.Tanh(),
-            nn.Conv3d(32, 16, kernel_size=(2, w, h)),
+            nn.Conv3d(32, 16, kernel_size=2),
             nn.Tanh(),
             nn.Flatten(),
         )
@@ -80,6 +80,7 @@ class NatureCNN(BaseFeaturesExtractor):
         # Compute shape by doing one forward pass
         with th.no_grad():
             n_flatten = self.cnn(th.as_tensor(observation_space.sample()).float()[None]).shape[1]
+        
         self.linear = nn.Sequential(
                 nn.Linear(n_flatten, features_dim),
                 nn.ReLU(),
@@ -89,7 +90,9 @@ class NatureCNN(BaseFeaturesExtractor):
         
 
     def forward(self, observations: th.Tensor) -> th.Tensor:
-        return self.linear(self.cnn(observations))
+        returnTensor =  self.linear(self.cnn(observations))
+        print(returnTensor)
+        return returnTensor
 
 
 def create_mlp(

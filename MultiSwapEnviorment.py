@@ -29,23 +29,20 @@ class swap_enviorment(Env):
             self.max_swaps_per_time_step = np.floor(self.rows * self.cols/2)
         else: 
             self.max_swaps_per_time_step = max_swaps_per_time_step
-        self.max_steps_per_episode = 200
+        self.max_episode_steps = 200
         #array of possible actions
         self.possible_actions = self.get_possible_actions()
         #Number of actions we can take
         self.action_space = Discrete(len(self.possible_actions))
-        print(self.action_space)
         self.observation_space = Box(low=0, high=np.floor(self.rows * self.cols / 2),
                                 shape=(1, depth_of_code, rows, cols, ), dtype=np.uint8)
         #The start state
         self.state = self.make_state()
-        #max amount of layers per episode
-        self.max_layers = self.depth_of_code
 
 
     def step(self, action: Discrete) -> Tuple[List[int], int, bool, 'info']:
         self.state = self.state.reshape((self.depth_of_code, self.rows*self.cols))
-        self.max_steps_per_episode -= 1
+        self.max_episode_steps -= 1
         swap_matrix = self.possible_actions[action]
         self.state = np.matmul(self.state, swap_matrix)
         # Rewards 
@@ -55,13 +52,12 @@ class swap_enviorment(Env):
             # remove the exicutable slice and add a new random slice at the tail
             self.state = np.roll(self.state, -1, axis=0)
             self.state[self.depth_of_code - 1] = self.make_state_slice()
-            self.max_layers -= 1
             # we are not done except if this was the last layer we can work on this episode
-            done = self.max_layers <= 0
-        elif self.max_steps_per_episode <= 0:
+        if self.max_episode_steps <= 0:
             done = True
-            reward = -400
-        else: done = False
+        else:
+            done = False
+
         info = {}
 
         self.state = self.state.reshape((self.depth_of_code, self.rows, self.cols))
@@ -75,7 +71,7 @@ class swap_enviorment(Env):
     def reset(self) -> List[int]:
         self.state = self.make_state()
         self.max_layers = self.depth_of_code
-        self.max_steps_per_episode = 200
+        self.max_episode_steps = 200
         return self.state
 
 #                                             [[1,0,0], [[1,0,0],   [[1,0,0],         [[1,0,0],  

@@ -7,7 +7,8 @@ import gym
 import numpy as np
 import torch as th
 
-from stable_baselines3.common import callbacks, vec_env
+from stable_baselines3.common import callbacks
+from stable_baselines3.common import vec_env
 
 GymEnv = Union[gym.Env, vec_env.VecEnv]
 GymObs = Union[Tuple, Dict[str, Any], np.ndarray, int]
@@ -40,15 +41,15 @@ class DictRolloutBufferSamples(RolloutBufferSamples):
 
 
 class ReplayBufferSamples(NamedTuple):
-    s: th.Tensor
-    V: th.Tensor
-    r: th.Tensor
+    observations: th.Tensor
+    V_next_observations: th.Tensor
+    rewards: th.Tensor
 
 
 class DictReplayBufferSamples(ReplayBufferSamples):
-    s: TensorDict
-    V: th.Tensor
-    r: th.Tensor
+    observations: TensorDict
+    V_next_observations: th.Tensor
+    rewards: th.Tensor
 
 
 class RolloutReturn(NamedTuple):

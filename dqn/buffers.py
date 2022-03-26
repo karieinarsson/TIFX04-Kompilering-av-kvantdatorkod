@@ -7,14 +7,15 @@ import torch as th
 from gym import spaces
 
 from stable_baselines3.common.preprocessing import get_action_dim, get_obs_shape
-from stable_baselines3.common.vec_env import VecNormalize
 from stable_baselines3.common.type_aliases import (
     DictRolloutBufferSamples,
     RolloutBufferSamples,
 )
-
-from dqn.type_aliases import ReplayBufferSamples, DictReplayBufferSamples
-
+from dqn.type_aliases import (
+    DictReplayBufferSamples,
+    ReplayBufferSamples,
+)
+from stable_baselines3.common.vec_env import VecNormalize
 
 try:
     # Check memory used by replay buffer when possible
@@ -193,18 +194,9 @@ class ReplayBuffer(BaseBuffer):
 
         self.observations = np.zeros((self.buffer_size, self.n_envs) + self.obs_shape, dtype=observation_space.dtype)
 
-        if optimize_memory_usage:
-            # `observations` contains also the next observation
-            self.next_observations = None
-        else:
-            self.next_observations = np.zeros((self.buffer_size, self.n_envs) + self.obs_shape, dtype=observation_space.dtype)
-
-        self.actions = np.zeros((self.buffer_size, self.n_envs, self.action_dim), dtype=action_space.dtype)
-
+        self.V_next_observations = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
         self.rewards = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
-        self.dones = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
-        # Handle timeouts termination properly if needed
-        # see https://github.com/DLR-RM/stable-baselines3/issues/284
+        
         self.handle_timeout_termination = handle_timeout_termination
         self.timeouts = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
 
@@ -222,27 +214,25 @@ class ReplayBuffer(BaseBuffer):
                     "This system does not have apparently enough memory to store the complete "
                     f"replay buffer {total_memory_usage:.2f}GB > {mem_available:.2f}GB"
                 )
-#TODO
+
     def add(
         self,
         obs: np.ndarray,
-        next_obs: np.ndarray,
-        action: np.ndarray,
+        V_next_obs: np.ndarray,
         reward: np.ndarray,
-        done: np.ndarray,
     ) -> None:
 
+        # Reshape needed when using multiple envs with discrete observations
+        # as numpy cannot broadcast (n_discrete,) to (n_discrete, 1)
+        if isinstance(self.observation_space, spaces.Discrete):
+            obs = obs.reshape((self.n_envs,) + self.obs_shape)
+
         # Copy to avoid modification by reference
-        self.actions[self.pos] = np.array(action).copy()
-        self.rewards[self.pos] = np.array(reward).copy()
-        self.dones[self.pos] = np.array(done).copy()
         self.observations[self.pos] = np.array(obs).copy()
 
-        if self.optimize_memory_usage:
-            self.observations[(self.pos + 1) % self.buffer_size] = np.array(next_obs).copy()
-        else:
-            self.next_observations[self.pos] = np.array(next_obs).copy()
-
+        
+        self.V_next_observations[self.pos] = np.array(V_next_obs).copy()
+        self.rewards[self.pos] = np.array(reward).copy()
 
         self.pos += 1
         if self.pos == self.buffer_size:
@@ -282,11 +272,7 @@ class ReplayBuffer(BaseBuffer):
 
         data = (
             self._normalize_obs(self.observations[batch_inds, env_indices, :], env),
-            self.actions[batch_inds, env_indices, :],
             next_obs,
-            # Only use dones that are not due to timeouts
-            # deactivated by default (timeouts is initialized as an array of False)
-            (self.dones[batch_inds, env_indices] * (1 - self.timeouts[batch_inds, env_indices])).reshape(-1, 1),
             self._normalize_reward(self.rewards[batch_inds, env_indices].reshape(-1, 1), env),
         )
         return ReplayBufferSamples(*tuple(map(self.to_torch, data)))

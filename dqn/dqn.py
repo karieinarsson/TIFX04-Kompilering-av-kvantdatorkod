@@ -7,12 +7,12 @@ import torch as th
 from torch.nn import functional as F
 
 from dqn.buffers import ReplayBuffer
-from dqn.policies import DQNPolicy
 from dqn.off_policy_algorithm import OffPolicyAlgorithm
+from dqn.policies import DQNPolicy
 
+from stable_baselines3.common.preprocessing import maybe_transpose
 from stable_baselines3.common.type_aliases import GymEnv, MaybeCallback, Schedule
 from stable_baselines3.common.utils import get_linear_fn, is_vectorized_observation, polyak_update
-from stable_baselines3.common.preprocessing import maybe_transpose
 
 
 class DQN(OffPolicyAlgorithm):
@@ -180,18 +180,17 @@ class DQN(OffPolicyAlgorithm):
             # Sample replay buffer
             # replay_data is a list of bufferdata with the range of batchsize
             replay_data = self.replay_buffer.sample(batch_size, env=self._vec_normalize_env)
-            #replay_data.r 
-            #replay_data.V(s')
-            #replay_data.s
+
             with th.no_grad():
-                # 1-step TD target
-                target_q_values = replay_data.rewards + self.gamma * replay_data.V
+                print(replay_data.V_next_observations)
+                print(replay_data.rewards)
+                target_q_values = replay_data.rewards + self.gamma * replay_data.V_next_observations
 
             # Get current Q-values estimates
-            current_q_values = self.q_net(replay_data.s)
+            current_q_values = self.q_net(replay_data.observations)
 
             # Retrieve the q-values for the actions from the replay buffer
-            #current_q_values = th.gather(current_q_values, dim=1, index=replay_data.actions.long())
+            current_q_values = th.gather(current_q_values, dim=1, index=replay_data.actions.long())
 
             # Compute Huber loss (less sensitive to outliers)
             loss = F.smooth_l1_loss(current_q_values, target_q_values)
@@ -200,7 +199,6 @@ class DQN(OffPolicyAlgorithm):
             # Optimize the policy
             self.policy.optimizer.zero_grad()
             loss.backward()
-
             # Clip gradient norm
             th.nn.utils.clip_grad_norm_(self.policy.parameters(), self.max_grad_norm)
             self.policy.optimizer.step()

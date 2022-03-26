@@ -29,8 +29,8 @@ from stable_baselines3.common.utils import (
     set_random_seed,
     update_learning_rate,
 )
+from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.vec_env import (
-    DummyVecEnv,
     VecEnv,
     VecNormalize,
     VecTransposeImage,
