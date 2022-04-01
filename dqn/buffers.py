@@ -194,9 +194,12 @@ class ReplayBuffer(BaseBuffer):
 
         self.observations = np.zeros((self.buffer_size, self.n_envs) + self.obs_shape, dtype=observation_space.dtype)
 
-        self.V_next_observations    = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
-        self.rewards                = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
-        
+        self.next_observations = np.zeros((self.buffer_size, self.n_envs) + self.obs_shape, dtype=observation_space.dtype)
+
+        self.rewards = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
+        self.dones = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
+        # Handle timeouts termination properly if needed
+        # see https://github.com/DLR-RM/stable-baselines3/issues/284
         self.handle_timeout_termination = handle_timeout_termination
         self.timeouts = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
 
@@ -218,7 +221,7 @@ class ReplayBuffer(BaseBuffer):
     def add(
         self,
         obs: np.ndarray,
-        V_next_obs: np.ndarray,
+        next_obs: np.ndarray,
         reward: np.ndarray,
     ) -> None:
 
@@ -229,8 +232,9 @@ class ReplayBuffer(BaseBuffer):
 
         # Copy to avoid modification by reference
         self.observations[self.pos] = np.array(obs).copy()
-        tmp = np.array(V_next_obs).copy()
-        self.V_next_observations[self.pos] = np.array(V_next_obs).copy()
+
+        self.next_observations[self.pos] = np.array(next_obs).copy()
+
         self.rewards[self.pos] = np.array(reward).copy()
 
         self.pos += 1
@@ -264,14 +268,9 @@ class ReplayBuffer(BaseBuffer):
         # Sample randomly the env idx
         env_indices = np.random.randint(0, high=self.n_envs, size=(len(batch_inds),))
 
-        if self.optimize_memory_usage:
-            next_obs = self._normalize_obs(self.observations[(batch_inds + 1) % self.buffer_size, env_indices, :], env)
-        else:
-            next_obs = self._normalize_obs(self.next_observations[batch_inds, env_indices, :], env)
-
         data = (
             self._normalize_obs(self.observations[batch_inds, env_indices, :], env),
-            self._normalize_reward(self.V_next_observations[batch_inds, env_indices].reshape(-1, 1), env),
+            self._normalize_obs(self.next_observations[batch_inds, env_indices, :], env),
             self._normalize_reward(self.rewards[batch_inds, env_indices].reshape(-1, 1), env),
         )
         return ReplayBufferSamples(*tuple(map(self.to_torch, data)))

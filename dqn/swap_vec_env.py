@@ -51,12 +51,13 @@ class SwapVecEnv(VecEnv):
             self._save_obs(env_idx, obs)
         return (self._obs_from_buf(), np.copy(self.buf_rews), np.copy(self.buf_dones), deepcopy(self.buf_infos))
 
-    #sets the observation of all envs as the same
+     #sets the observation of all envs as the same
     def set_obs(self, obs: VecEnvObs = None):
         if obs is None:
             obs = deepcopy(self.envs[0].state)
         for env_idx in range(self.num_envs):
-            self.envs[env_idx].state = deepcopy(obs)
+            self.envs[env_idx].state = obs
+        return obs 
 
     def seed(self, seed: Optional[int] = None) -> List[Union[None, int]]:
         seeds = list()

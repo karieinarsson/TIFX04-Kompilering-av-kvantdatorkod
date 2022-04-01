@@ -9,6 +9,7 @@ from torch.nn import functional as F
 from dqn.buffers import ReplayBuffer
 from dqn.off_policy_algorithm import OffPolicyAlgorithm
 from dqn.policies import DQNPolicy
+from dqn.evaluation import evaluate_policy
 
 from stable_baselines3.common.preprocessing import maybe_transpose
 from stable_baselines3.common.type_aliases import GymEnv, MaybeCallback, Schedule
@@ -180,15 +181,17 @@ class DQN(OffPolicyAlgorithm):
             # Sample replay buffer
             # replay_data is a list of bufferdata with the range of batchsize
             replay_data = self.replay_buffer.sample(batch_size, env=self._vec_normalize_env)
-
             with th.no_grad():
-                target_q_values = replay_data.rewards + self.gamma * replay_data.V_next_observations
-
+                V_obs = self.q_net_target(replay_data.next_observations)
+            V_obs *= 8
+            target_q_values = V_obs.add(replay_data.rewards)
+            
             # Get current Q-values estimates
+            #with th.no_grad():
             current_q_values = self.q_net(replay_data.observations)
-
+            #print(current_q_values)
             # Compute Huber loss (less sensitive to outliers)
-            loss = F.smooth_l1_loss(current_q_values, target_q_values)
+            loss = F.mse_loss(current_q_values, target_q_values)
             losses.append(loss.item())
 
             # Optimize the policy
@@ -203,6 +206,7 @@ class DQN(OffPolicyAlgorithm):
 
         self.logger.record("train/n_updates", self._n_updates, exclude="tensorboard")
         self.logger.record("train/loss", np.mean(losses))
+        self._dump_logs()
 
     def predict(
         self,
@@ -222,14 +226,8 @@ class DQN(OffPolicyAlgorithm):
             (used in recurrent policies)
         """
         if not deterministic and np.random.rand() < self.exploration_rate:
-            if is_vectorized_observation(maybe_transpose(observation, self.observation_space), self.observation_space):
-                if isinstance(self.observation_space, gym.spaces.Dict):
-                    n_batch = observation[list(observation.keys())[0]].shape[0]
-                else:
-                    n_batch = observation.shape[0]
-                action = np.array([self.action_space.sample() for _ in range(n_batch)])
-            else:
-                action = np.array(self.action_space.sample())
+            n_batch = observation.shape[0]
+            action = np.array([self.action_space.sample() for _ in range(n_batch)])
         else:
             action, state = self.policy.predict(observation, state, episode_start, deterministic)
         return action, state

@@ -3,6 +3,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import gym
 import numpy as np
+import torch as th
 
 from stable_baselines3.common import base_class
 from stable_baselines3.common.vec_env import DummyVecEnv, VecEnv, VecMonitor, is_vecenv_wrapped
@@ -84,8 +85,20 @@ def evaluate_policy(
     episode_starts = np.ones((env.num_envs,), dtype=bool)
     while (episode_counts < episode_count_targets).any():
 
-        actions, states = model.predict(observations, state=states, episode_start=episode_starts, deterministic=deterministic)
+        actions = np.zeros(env.num_envs, dtype = int)
+        possible_actions = env.envs[0].possible_actions
+        
+        for idx, obs in enumerate(observations):
+            x, d, r, c = obs.shape
+            obs_ = obs.reshape((d, r*c))
+            new_obs = np.array([np.matmul(obs_, a).reshape((d,r,c)) for a in possible_actions]).reshape((env.num_envs,x,d,r,c))
+            with th.no_grad():
+                new_obs = th.from_numpy(new_obs)
+                action = model.policy._predict(new_obs, deterministic=False) 
+            actions[idx] = np.argmax(action)
+        
         observations, rewards, dones, infos = env.step(actions)
+
         current_rewards += rewards
         current_lengths += 1
         for i in range(n_envs):
@@ -125,6 +138,7 @@ def evaluate_policy(
 
     mean_reward = np.mean(episode_rewards)
     std_reward = np.std(episode_rewards)
+
     if reward_threshold is not None:
         assert mean_reward > reward_threshold, "Mean reward below threshold: " f"{mean_reward:.2f} < {reward_threshold:.2f}"
     if return_episode_rewards:

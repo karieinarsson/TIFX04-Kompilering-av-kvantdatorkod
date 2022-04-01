@@ -29,6 +29,7 @@ class swap_enviorment(Env):
             self.max_swaps_per_time_step = np.floor(self.rows * self.cols/2)
         else: 
             self.max_swaps_per_time_step = max_swaps_per_time_step
+        self.max_layers = depth_of_code + 10
         self.max_episode_steps = 200
         #array of possible actions
         self.possible_actions = self.get_possible_actions()
@@ -48,12 +49,15 @@ class swap_enviorment(Env):
         # Rewards 
         reward = -1
         if self.is_executable_state():
-            if action == 0: reward = 0
+            #reward += 5
+            if action == 0: 
+                reward = 0
             # remove the exicutable slice and add a new random slice at the tail
             self.state = np.roll(self.state, -1, axis=0)
             self.state[self.depth_of_code - 1] = self.make_state_slice()
             # we are not done except if this was the last layer we can work on this episode
-        if self.max_episode_steps <= 0:
+            self.max_layers -= 1
+        if self.max_episode_steps <= 0 or self.max_layers <= 0:
             done = True
         else:
             done = False

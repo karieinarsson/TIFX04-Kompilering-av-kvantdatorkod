@@ -68,11 +68,11 @@ class NatureCNN(BaseFeaturesExtractor):
         n_input_channels, depth_of_code, rows, cols = observation_space.shape
         w = 3 if rows >= 5 else rows // 2
         h = 3 if cols >= 5 else cols // 2
-        d = depth_of_code // 2
+        d = 1 if depth_of_code == 1 else depth_of_code // 2
         self.cnn = nn.Sequential(
-            nn.Conv3d(n_input_channels, 32, kernel_size=2, padding=1),
+            nn.Conv3d(n_input_channels, 32, kernel_size=(d,w,h), padding=(0,2,2)),
             nn.Tanh(),
-            nn.Conv3d(32, 16, kernel_size=2),
+            nn.Conv3d(32, 16, kernel_size=(1,w,h)),
             nn.Tanh(),
             nn.Flatten(),
         )
@@ -82,7 +82,9 @@ class NatureCNN(BaseFeaturesExtractor):
             n_flatten = self.cnn(th.as_tensor(observation_space.sample()).float()[None]).shape[1]
         
         self.linear = nn.Sequential(
-            nn.Linear(n_flatten, features_dim),
+            nn.Linear(n_flatten, 200),
+            nn.Tanh(),
+            nn.Linear(200, 1),
             nn.ReLU(),
         )
         

@@ -42,13 +42,13 @@ class DictRolloutBufferSamples(RolloutBufferSamples):
 
 class ReplayBufferSamples(NamedTuple):
     observations: th.Tensor
-    V_next_observations: th.Tensor
+    next_observations: th.Tensor
     rewards: th.Tensor
 
 
 class DictReplayBufferSamples(ReplayBufferSamples):
     observations: TensorDict
-    V_next_observations: th.Tensor
+    V_next_observations: TensorDict
     rewards: th.Tensor
 
 

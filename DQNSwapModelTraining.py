@@ -13,34 +13,34 @@ from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.results_plotter import load_results, ts2xy, plot_results
 from stable_baselines3.common.noise import NormalActionNoise
 from stable_baselines3.common.callbacks import BaseCallback
-from stable_baselines3.common.evaluation import evaluate_policy
 
+from dqn.evaluation import evaluate_policy
 from dqn.env_util import make_vec_env
 from dqn.swap_vec_env import SwapVecEnv
 from dqn.dqn import DQN
 
 #env variables
-depth_of_code = 10
-rows = 3
+depth_of_code = 5
+rows = 2
 cols = 2
 max_swaps_per_time_step = -1
 
 #model variables
-learning_starts = 0 #int(1e4)
+learning_starts = int(1e4)
 verbose = 1
 exploration_fraction = 0.2
 exploration_initial_eps = 1
 exploration_final_eps = 0.1
-batch_size = 128
+batch_size = 512
 learning_rate = 0.001
-target_update_interval = 10000
-tau = 0.2
-gamma = 0.99
+target_update_interval = int(1e4)
+tau = 0.5
+gamma = 0.5
 train_freq = 4
 
 #training variables
-total_timesteps = int(1e5)
-log_interval = 2
+total_timesteps = int(2e5)
+log_interval = 4
 
 register(
     id="MultiSwapEnviorment-v0",
@@ -70,11 +70,13 @@ model = DQN('CnnPolicy',
 # Train the agent
 model.learn(total_timesteps = total_timesteps, log_interval = log_interval)
 
-# Save the agent
-#model_dir = "models/"
-#model_name = "DQNModel("+ str(env.depth_of_code) + "," + str(env.rows) + "," + str(env.cols) + ',' + str(env.max_swaps_per_time_step) + ")"
-#model.save(model_dir + model_name)
+print("training done")
 
-mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=1000)
+# Save the agent
+model_dir = "models/"
+model_name = "DQNModel(StateToValue)"
+model.save(model_dir + model_name)
+
+mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=20)
 print(mean_reward)
 
