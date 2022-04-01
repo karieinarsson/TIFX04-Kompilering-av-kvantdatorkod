@@ -5,7 +5,7 @@ import math
 from typing import List, Tuple
 import copy
 from stable_baselines3.common.env_checker import check_env
-
+import pygame
 # types
 Matrix = List[List[int]]
 Action = List[int]
@@ -89,22 +89,18 @@ class swap_enviorment(Env):
             pygame.init()
             pygame.display.init()
             self.screen = pygame.display.set_mode((PG_WIDTH,PG_HEIGHT))
-            num_font = pygame.font.SysFont(None,30)
-            img0 = num_font.render('0',True,GREEN)
-            img1 = num_font.render('1',True,GREEN)
-            img2 = num_font.render('2',True,GREEN)
-            img3 = num_font.render('3',True,GREEN)
-            img4 = num_font.render('4',True,GREEN)
-            img5 = num_font.render('5',True,GREEN)
-            img6 = num_font.render('6',True,GREEN)
-            img7 = num_font.render('7',True,GREEN)
-            img8 = num_font.render('8',True,GREEN)
-            img9 = num_font.render('9',True,GREEN)
-
-        self.surface = pygame.Surface(self.screen.get_size())
-
-        pygame.draw.rect(self.surface,(255,255,255),self.surface.get_rect())
         
+        num_font = pygame.font.SysFont(None,30)
+        img0 = num_font.render('0',True,RED)
+        img1 = num_font.render('1',True,RED)
+        img2 = num_font.render('2',True,RED)
+        img3 = num_font.render('3',True,RED)
+        img4 = num_font.render('4',True,RED)
+        img5 = num_font.render('5',True,RED)
+        img6 = num_font.render('6',True,RED)
+        img7 = num_font.render('7',True,RED)
+        img8 = num_font.render('8',True,RED)
+        img9 = num_font.render('9',True,RED) 
         
         dict={
             0:img0,
@@ -118,29 +114,32 @@ class swap_enviorment(Env):
             8:img8,
             9:img9
             }
-    
-    
-        for j in range(1,self.cols+1):
-            for i in range(1,self.rows+1):
-                self.surface.blit(number(self.state[i-1][j-1]),((X_START*j)-5,(Y_START*i)-8))
+
+        surface = pygame.Surface(self.screen.get_size())
+
+        pygame.draw.rect(surface,(255,255,255),surface.get_rect())
+         
 
         
         for j in range(1,self.cols+1):
             for i in range(1,self.rows+1):
-                pygame.draw.circle(self.surface,WHITE,((X_START*j),y+(Y_START*i)),20)
+                pygame.draw.circle(self.screen,WHITE,((X_START*j),(Y_START*i)),20)
                 if j < self.rows:
-                    pygame.draw.line(self.surface,WHITE,((X_START*j),(Y_START*i)),((X_START*(j+1)),((Y_START*i))),4)
+                    pygame.draw.line(self.screen,WHITE,((X_START*j),(Y_START*i)),((X_START*(j+1)),((Y_START*i))),4)
                 if i < self.cols: 
-                    pygame.draw.line(self.surface,WHITE,((X_START*j),(Y_START*i)),((X_START*j),((Y_START*(i+1)))),4)
-        
-        self.screen.blit(self.surface,(0,0))
+                    pygame.draw.line(self.screen,WHITE,((X_START*j),(Y_START*i)),((X_START*j),((Y_START*(i+1)))),4)
+       
+
+        for j in range(1,self.cols+1):
+            for i in range(1,self.rows+1):
+                self.screen.blit(dict.get(self.state[0][i-1][j-1]),((X_START*j)-5,(Y_START*i)-8))
 
         pygame.event.pump()
         pygame.display.flip()
 
         return self.isopen
 
-    def close():
+    def close(self):
         if self.isopen is not None:
             pygame.display.quit()
             pygame.quit()
