@@ -2,14 +2,18 @@ from MultiSwapEnviorment import swap_enviorment
 
 from gym.envs.registration import register
 
+import numpy as np
+
 from dqn.env_util import make_vec_env
 from dqn.dqn import DQN
 from dqn.evaluation import evaluate_policy
 
-depth_of_code = 10
+depth_of_code = 5
 rows = 2
 cols = 2
 max_swaps_per_time_step = -1
+
+n_eval_episodes = 100
 
 modelDir = "models/"
 
@@ -35,7 +39,20 @@ model = DQN.load(modelDir + modelName, env=venv)
 #       wrap environment in a "Monitor" wrapper before other wrappers.
 
 
-mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=1000)
+rewards = np.zeros(n_eval_episodes)
+current_reward, episode = 0, 0
+env = swap_enviorment(depth_of_code, rows, cols, max_swaps_per_time_step)
+while episode < n_eval_episodes:
+    action = env.action_space.sample()
+    _, reward, done, _ = env.step(action)
+    current_reward += reward
+    if done:
+        rewards[episode] = current_reward
+        current_reward = 0
+        episode += 1
+        env.reset()
 
-print(mean_reward)
+print(f"Mean reward random: {np.mean(rewards)}")
 
+mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=n_eval_episodes)
+print(f"Mean reward model: {mean_reward}")

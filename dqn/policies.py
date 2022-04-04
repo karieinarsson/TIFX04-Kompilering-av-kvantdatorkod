@@ -206,9 +206,6 @@ class DQNPolicy(BasePolicy):
         for idx, obs in enumerate(observations):
             x, d, r, c = obs.shape
             obs = obs.reshape((d, r*c))
-            if env.envs[0].is_executable_state(obs) and deterministic:
-                actions[idx] = 0
-                continue
             new_obs_ = np.array([np.matmul(obs, a) for a in possible_actions])
             with th.no_grad():
                 new_obs = th.from_numpy(new_obs_.reshape((len(possible_actions),x,d,r,c)))

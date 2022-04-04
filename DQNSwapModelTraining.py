@@ -21,26 +21,30 @@ from dqn.dqn import DQN
 
 #env variables
 depth_of_code = 5
-rows = 2
+rows = 3
 cols = 2
 max_swaps_per_time_step = -1
 
 #model variables
-learning_starts = int(5e3)
+learning_starts = int(2e4)
 verbose = 1
 exploration_fraction = 0.5
 exploration_initial_eps = 1
-exploration_final_eps = 0.10
+exploration_final_eps = 0.05
 batch_size = 512
 learning_rate = 0.001
-target_update_interval = int(5e3)
+target_update_interval = int(2e4)
 tau = 0.3
 gamma = 0.4
 train_freq = 4
 
 #training variables
-total_timesteps = int(3e4)
+total_timesteps = int(1e5)
 log_interval = 4
+
+#evaluation
+n_eval_episodes = 20
+
 
 register(
     id="MultiSwapEnviorment-v0",
@@ -70,13 +74,28 @@ model = DQN('CnnPolicy',
 # Train the agent
 model.learn(total_timesteps = total_timesteps, log_interval = log_interval)
 
-print("training done")
-
 # Save the agent
 model_dir = "models/"
 model_name = "DQNModel(StateToValue)"
 model.save(model_dir + model_name)
 
-mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=20)
-print(mean_reward)
+print("training done")
 
+rewards = np.zeros(n_eval_episodes)
+current_reward, episode = 0, 0
+env = swap_enviorment(depth_of_code, rows, cols, max_swaps_per_time_step)
+while episode < n_eval_episodes:
+    action = env.action_space.sample()
+    _, reward, done, _ = env.step(action)
+    current_reward += reward
+    if done:
+        rewards[episode] = current_reward
+        current_reward = 0
+        episode += 1
+        env.reset()
+
+print(f"Mean reward random: {np.mean(rewards)}")
+
+mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=n_eval_episodes)
+
+print(f"Mean reward model: {mean_reward}")

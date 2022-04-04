@@ -192,7 +192,7 @@ class DQN(OffPolicyAlgorithm):
             current_q_values = self.q_net(replay_data.observations)
             #print(current_q_values)
             # Compute Huber loss (less sensitive to outliers)
-            loss = F.mse_loss(current_q_values, target_q_values)
+            loss = F.huber_loss(current_q_values, target_q_values)
             losses.append(loss.item())
 
             # Optimize the policy
