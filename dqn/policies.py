@@ -6,6 +6,7 @@ from torch import nn
 from gym.spaces import Discrete
 import numpy as np
 
+from stable_baselines3.common.vec_env import VecEnv
 from stable_baselines3.common.policies import BasePolicy, register_policy
 from stable_baselines3.common.torch_layers import (
     BaseFeaturesExtractor,
@@ -178,7 +179,8 @@ class DQNPolicy(BasePolicy):
 
     def predict(
         self,
-        observation: Union[np.ndarray, Dict[str, np.ndarray]],
+        observations: Union[np.ndarray, Dict[str, np.ndarray]],
+        env: VecEnv,
         state: Optional[Tuple[np.ndarray, ...]] = None,
         episode_start: Optional[np.ndarray] = None,
         deterministic: bool = False,
@@ -197,15 +199,24 @@ class DQNPolicy(BasePolicy):
             (used in recurrent policies)
         """
         self.set_training_mode(False)
+        
+        actions = np.zeros(env.num_envs, dtype = int)
+        possible_actions = env.envs[0].possible_actions
 
-        observation, vectorized_env = self.obs_to_tensor(observation)
-
-        with th.no_grad():
-            actions = self._predict(observation, deterministic=deterministic)
-        # Convert to numpy
-        actions = actions.cpu().numpy()
-        #print(actions)
-        actions = np.argmax(actions)
+        for idx, obs in enumerate(observations):
+            x, d, r, c = obs.shape
+            obs = obs.reshape((d, r*c))
+            if env.envs[0].is_executable_state(obs) and deterministic:
+                actions[idx] = 0
+                continue
+            new_obs_ = np.array([np.matmul(obs, a) for a in possible_actions])
+            with th.no_grad():
+                new_obs = th.from_numpy(new_obs_.reshape((len(possible_actions),x,d,r,c)))
+                action = self._predict(new_obs, deterministic=deterministic)
+            for i, o in enumerate(new_obs_):
+                if not env.envs[0].is_executable_state(o):
+                    action[i] -= 1
+            actions[idx] = np.argmax(action)
         
         return actions, state
 

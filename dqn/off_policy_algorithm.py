@@ -444,21 +444,8 @@ class OffPolicyAlgorithm(BaseAlgorithm):
             actions = np.array([self.action_space.sample() for _ in range(env.num_envs)])
             return actions
 
-        if np.random.rand() < self.exploration_rate:
-            actions = np.array([self.action_space.sample() for _ in range(env.num_envs)])
-            return actions
-        
-        possible_actions = env.envs[0].possible_actions
-    
-        actions = np.zeros(env.num_envs, dtype = int)
-        for idx, obs in enumerate(self._last_obs):
-            x, d, r, c = obs.shape
-            obs_ = obs.reshape((d, r*c))
-            new_obs = np.array([np.matmul(obs_, a).reshape((d,r,c)) for a in possible_actions]).reshape((env.num_envs,x,d,r,c))
-            with th.no_grad():
-                new_obs = th.from_numpy(new_obs)
-                action = self.policy._predict(new_obs, deterministic=False) 
-            actions[idx] = np.argmax(action)
+        actions, state = self.predict(self._last_obs, env)
+
         return actions
 
     def _store_transition(

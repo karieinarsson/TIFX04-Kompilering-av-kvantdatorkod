@@ -6,7 +6,7 @@ from dqn.env_util import make_vec_env
 from dqn.dqn import DQN
 from dqn.evaluation import evaluate_policy
 
-depth_of_code = 5
+depth_of_code = 10
 rows = 2
 cols = 2
 max_swaps_per_time_step = -1
@@ -35,7 +35,7 @@ model = DQN.load(modelDir + modelName, env=venv)
 #       wrap environment in a "Monitor" wrapper before other wrappers.
 
 
-mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=10)
+mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=1000)
 
 print(mean_reward)
 

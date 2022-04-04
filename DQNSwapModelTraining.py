@@ -15,7 +15,7 @@ from stable_baselines3.common.noise import NormalActionNoise
 from stable_baselines3.common.callbacks import BaseCallback
 
 from dqn.evaluation import evaluate_policy
-from dqn.env_util import make_vec_env
+from stable_baselines3.common.env_util import make_vec_env
 from dqn.swap_vec_env import SwapVecEnv
 from dqn.dqn import DQN
 
@@ -26,20 +26,20 @@ cols = 2
 max_swaps_per_time_step = -1
 
 #model variables
-learning_starts = int(1e4)
+learning_starts = int(5e3)
 verbose = 1
-exploration_fraction = 0.2
+exploration_fraction = 0.5
 exploration_initial_eps = 1
-exploration_final_eps = 0.1
+exploration_final_eps = 0.10
 batch_size = 512
 learning_rate = 0.001
-target_update_interval = int(1e4)
-tau = 0.5
-gamma = 0.5
+target_update_interval = int(5e3)
+tau = 0.3
+gamma = 0.4
 train_freq = 4
 
 #training variables
-total_timesteps = int(2e5)
+total_timesteps = int(3e4)
 log_interval = 4
 
 register(
@@ -48,7 +48,7 @@ register(
     max_episode_steps=200,
 )
 
-venv = make_vec_env("MultiSwapEnviorment-v0", env_kwargs = {"depth_of_code": depth_of_code, "rows": rows, "cols": cols, "max_swaps_per_time_step": max_swaps_per_time_step})
+venv = make_vec_env("MultiSwapEnviorment-v0", n_envs = 7, env_kwargs = {"depth_of_code": depth_of_code, "rows": rows, "cols": cols, "max_swaps_per_time_step": max_swaps_per_time_step})
 
 # Intantiate the agent
 model = DQN('CnnPolicy', 

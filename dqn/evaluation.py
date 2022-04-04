@@ -85,17 +85,7 @@ def evaluate_policy(
     episode_starts = np.ones((env.num_envs,), dtype=bool)
     while (episode_counts < episode_count_targets).any():
 
-        actions = np.zeros(env.num_envs, dtype = int)
-        possible_actions = env.envs[0].possible_actions
-        
-        for idx, obs in enumerate(observations):
-            x, d, r, c = obs.shape
-            obs_ = obs.reshape((d, r*c))
-            new_obs = np.array([np.matmul(obs_, a).reshape((d,r,c)) for a in possible_actions]).reshape((env.num_envs,x,d,r,c))
-            with th.no_grad():
-                new_obs = th.from_numpy(new_obs)
-                action = model.policy._predict(new_obs, deterministic=False) 
-            actions[idx] = np.argmax(action)
+        actions, _ = model.policy.predict(observations, env, deterministic=True)
         
         observations, rewards, dones, infos = env.step(actions)
 

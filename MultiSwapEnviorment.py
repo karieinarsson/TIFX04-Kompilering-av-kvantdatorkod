@@ -48,8 +48,7 @@ class swap_enviorment(Env):
         self.state = np.matmul(self.state, swap_matrix)
         # Rewards 
         reward = -1
-        if self.is_executable_state():
-            #reward += 5
+        if self.is_executable_state(self.state):
             if action == 0: 
                 reward = 0
             # remove the exicutable slice and add a new random slice at the tail
@@ -84,11 +83,11 @@ class swap_enviorment(Env):
 # and checks if all the pairs of numbers in the first slice are neighbors and 
 #if so returns True else returns False
 
-    def is_executable_state(self) -> bool:
+    def is_executable_state(self, state) -> bool:
         for pos in range(self.rows * self.cols):
-            gate = self.state[0][pos]
+            gate = state[0][pos]
             if gate > 0:
-                neighbors = [self.state[0][pos+i] if pos+i >= 0 and pos+i < self.rows*self.cols 
+                neighbors = [state[0][pos+i] if pos+i >= 0 and pos+i < self.rows*self.cols 
                         and not (pos%self.rows == 0 and i == -1) 
                         and not (pos%self.rows == self.rows-1 and i == 1) else 0 
                         for i in [1, -1, self.rows, -self.rows]]

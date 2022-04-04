@@ -183,7 +183,8 @@ class DQN(OffPolicyAlgorithm):
             replay_data = self.replay_buffer.sample(batch_size, env=self._vec_normalize_env)
             with th.no_grad():
                 V_obs = self.q_net_target(replay_data.next_observations)
-            V_obs *= 8
+            V_obs *= self.gamma
+
             target_q_values = V_obs.add(replay_data.rewards)
             
             # Get current Q-values estimates
@@ -211,6 +212,7 @@ class DQN(OffPolicyAlgorithm):
     def predict(
         self,
         observation: np.ndarray,
+        env,
         state: Optional[Tuple[np.ndarray, ...]] = None,
         episode_start: Optional[np.ndarray] = None,
         deterministic: bool = False,
@@ -229,7 +231,7 @@ class DQN(OffPolicyAlgorithm):
             n_batch = observation.shape[0]
             action = np.array([self.action_space.sample() for _ in range(n_batch)])
         else:
-            action, state = self.policy.predict(observation, state, episode_start, deterministic)
+            action, state = self.policy.predict(observation, env, state, episode_start, deterministic)
         return action, state
 
     def learn(
