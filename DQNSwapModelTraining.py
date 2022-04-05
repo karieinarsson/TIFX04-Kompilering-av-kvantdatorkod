@@ -14,13 +14,13 @@ from stable_baselines3.common.evaluation import evaluate_policy
 from dqn.dqn import DQN
 
 #env variables
-depth_of_code = 2
+depth_of_code = 5
 rows = 3
 cols = 3
 max_swaps_per_time_step = -1
 
 #model variables
-learning_starts = int(1e5)
+learning_starts = int(1e4)
 verbose = 1
 exploration_fraction = 0.5
 exploration_initial_eps = 1
@@ -32,7 +32,7 @@ gamma = 0.99
 train_freq = 10
 
 #training variables
-total_timesteps = int(5e5)
+total_timesteps = int(1e5)
 log_interval = 10
 
 

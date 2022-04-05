@@ -1,14 +1,14 @@
-from MultiSwapEnviorment_2 import swap_enviorment
+from MultiSwapEnviorment import swap_enviorment
 
 from stable_baselines3 import DQN
 from stable_baselines3.common.evaluation import evaluate_policy
 
 
-modelDir = "tmp/"
+modelDir = "models/"
 
-modelName = "best_model.zip"
+modelName = "DQNModel(test).zip"
 
-env = swap_enviorment(1, 3, 3, 2)
+env = swap_enviorment(10, 2, 2, 2)
 
 # Load the trained agent
 # NOTE: if you have loading issue, you can pass `print_system_info=True`
@@ -24,3 +24,10 @@ mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episode
 
 print(mean_reward)
 
+
+obs = env.reset()
+for i in range(1000):
+    action, _states = model.predict(obs, deterministic=True)
+    print(action)
+    obs, rewards, dones, info = env.step(action)
+    env.render()

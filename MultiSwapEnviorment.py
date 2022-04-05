@@ -84,7 +84,7 @@ class swap_enviorment(Env):
         return self.state, reward, done, info
         
 
-    def render(self, mode = "human"): 
+    def render(self, mode = "human", action = 0): 
         if self.screen is None:
             pygame.init()
             pygame.display.init()
@@ -119,7 +119,9 @@ class swap_enviorment(Env):
 
         pygame.draw.rect(surface,(255,255,255),surface.get_rect())
          
-
+        #matrix that is used to say which swaps are made
+        #for 2x2 [[],[],[],[]]
+        swap_matrix = self.possible_actions[action]
         
         for j in range(1,self.cols+1):
             for i in range(1,self.rows+1):
@@ -136,6 +138,8 @@ class swap_enviorment(Env):
 
         pygame.event.pump()
         pygame.display.flip()
+
+        pygame.time.wait(1000)
 
         return self.isopen
 
