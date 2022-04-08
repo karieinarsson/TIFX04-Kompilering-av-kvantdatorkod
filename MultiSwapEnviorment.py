@@ -11,10 +11,10 @@ Matrix = List[List[int]]
 Action = List[int]
 
 #pygame constants
-PG_WIDTH  = 500
-PG_HEIGHT = 500
-X_START   = 100
-Y_START   = 100
+PG_WIDTH  = 100
+PG_HEIGHT = 100
+X_START   = PG_WIDTH*0.6
+Y_START   = PG_HEIGHT*0.6
 #Colors
 WHITE = (255,255,255)
 BLACK = (0,0,0)
@@ -84,12 +84,13 @@ class swap_enviorment(Env):
         return self.state, reward, done, info
         
 
-    def render(self, mode = "human", action = 0): 
+    def render(self, mode = "human", actionList = [], obsList = []): 
         if self.screen is None:
             pygame.init()
             pygame.display.init()
-            self.screen = pygame.display.set_mode((PG_WIDTH,PG_HEIGHT))
-        
+            self.screen = pygame.display.set_mode((PG_WIDTH*self.cols,PG_HEIGHT*self.rows))
+       
+        print(obsList)
         num_font = pygame.font.SysFont(None,30)
         img0 = num_font.render('0',True,RED)
         img1 = num_font.render('1',True,RED)
@@ -103,9 +104,9 @@ class swap_enviorment(Env):
         img9 = num_font.render('9',True,RED) 
         
         dict={
-            0:img0,
-            1:img1,
-            2:img2,
+            0:RED,
+            1:GREEN,
+            2:BLUE,
             3:img3,
             4:img4,
             5:img5,
@@ -117,24 +118,83 @@ class swap_enviorment(Env):
 
         surface = pygame.Surface(self.screen.get_size())
 
-        pygame.draw.rect(surface,(255,255,255),surface.get_rect())
+        pygame.draw.rect(surface,WHITE,surface.get_rect())
          
         #matrix that is used to say which swaps are made
         #for 2x2 [[],[],[],[]]
-        swap_matrix = self.possible_actions[action]
+        #swap_matrix = self.possible_actions[action]
         
         for j in range(1,self.cols+1):
             for i in range(1,self.rows+1):
-                pygame.draw.circle(self.screen,WHITE,((X_START*j),(Y_START*i)),20)
+                pygame.draw.circle(surface,BLACK,((X_START*j),(Y_START*i)),20)
                 if j < self.rows:
-                    pygame.draw.line(self.screen,WHITE,((X_START*j),(Y_START*i)),((X_START*(j+1)),((Y_START*i))),4)
+                    pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*(j+1)),((Y_START*i))),4)
                 if i < self.cols: 
-                    pygame.draw.line(self.screen,WHITE,((X_START*j),(Y_START*i)),((X_START*j),((Y_START*(i+1)))),4)
+                    pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*j),((Y_START*(i+1)))),4)
        
 
         for j in range(1,self.cols+1):
             for i in range(1,self.rows+1):
-                self.screen.blit(dict.get(self.state[0][i-1][j-1]),((X_START*j)-5,(Y_START*i)-8))
+                #surface.blit(dict.get(self.state[0][i-1][j-1]),((X_START*j)-5,(Y_START*i)-8))
+                pygame.draw.circle(surface,dict.get(obsList[0][i-1][j-1]),((X_START*j),(Y_START*i)),15)
+        
+        self.screen.blit(surface,(0,0))
+        pygame.display.flip()
+
+        index = 0
+        running = True
+
+        while(index < len(obsList) and running):
+            ev = pygame.event.get()
+
+            for event in ev:
+
+                if event.type == pygame.QUIT:
+                    running = False
+
+                if event.type == pygame.KEYDOWN:
+                    
+                    for j in range(1,self.cols+1):
+                        for i in range(1,self.rows+1):
+                            pygame.draw.circle(surface,BLACK,((X_START*j),(Y_START*i)),20)
+                            if j < self.rows:
+                                pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*(j+1)),((Y_START*i))),4)
+                            if i < self.cols: 
+                                pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*j),((Y_START*(i+1)))),4)
+
+                    if event.key == pygame.K_n:
+                        #next one
+                        if index == len(obsList)-1:
+                            print("At last obs")
+                        else:
+                            index += 1
+
+                        for j in range(1,self.cols+1):
+                            for i in range(1,self.rows+1):
+                                #surface.blit(dict.get(self.state[0][i-1][j-1]),((X_START*j)-5,(Y_START*i)-8))
+                                pygame.draw.circle(surface,dict.get(obsList[index][i-1][j-1]),((X_START*j),(Y_START*i)),15)
+                        
+                        self.screen.blit(surface,(0,0))
+                        pygame.display.flip()
+
+                    if event.key == pygame.K_b:
+                        #back one
+                        if index == 0:
+                            print("At first obs")
+                        else:    
+                            index -= 1
+
+                        for j in range(1,self.cols+1):
+                            for i in range(1,self.rows+1):
+                                #surface.blit(dict.get(self.state[0][i-1][j-1]),((X_START*j)-5,(Y_START*i)-8))
+                                pygame.draw.circle(surface,dict.get(obsList[index][i-1][j-1]),((X_START*j),(Y_START*i)),15)
+                        
+                        self.screen.blit(surface,(0,0))
+                        pygame.display.flip()
+
+
+
+        self.screen.blit(surface,(0,0))
 
         pygame.event.pump()
         pygame.display.flip()

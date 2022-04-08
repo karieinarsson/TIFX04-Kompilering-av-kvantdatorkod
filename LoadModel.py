@@ -26,8 +26,17 @@ print(mean_reward)
 
 
 obs = env.reset()
-for i in range(1000):
+
+obsList = []
+actionList = []
+
+for i in range(1):
     action, _states = model.predict(obs, deterministic=True)
-    print(action)
+    actionList.append(action)
+    obsList.extend(obs.tolist())
     obs, rewards, dones, info = env.step(action)
-    env.render()
+
+print(actionList)
+print(obsList)
+env.render("human",actionList, obsList)
+
