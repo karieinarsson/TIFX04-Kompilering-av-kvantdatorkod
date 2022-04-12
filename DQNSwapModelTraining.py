@@ -4,8 +4,6 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 
-from dqn.vec_env import DummyVecEnv
-
 from gym.envs.registration import register
 
 from stable_baselines3.common import results_plotter
