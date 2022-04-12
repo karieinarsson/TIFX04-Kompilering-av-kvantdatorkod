@@ -13,6 +13,8 @@ from stable_baselines3.common.evaluation import evaluate_policy
 
 from dqn.dqn import DQN
 
+from gym.envs.registration import register
+
 #env variables
 depth_of_code = 2
 rows = 3
@@ -34,6 +36,14 @@ train_freq = 10
 #training variables
 total_timesteps = int(5e5)
 log_interval = 10
+
+register(
+    id="MultiSwapEnviorment-v0",
+    entry_point="MultiSwapEnviorment:swap_enviorment",
+    max_episode_steps=200,
+)
+
+venv = make_vec_env("MultiSwapEnviorment-v0", n_envs = 7, env_kwargs = {"depth_of_code": depth_of_code, "rows": rows, "cols": cols, "max_swaps_per_time_step": max_swaps_per_time_step})
 
 
 class SaveOnBestTrainingRewardCallback(BaseCallback):
