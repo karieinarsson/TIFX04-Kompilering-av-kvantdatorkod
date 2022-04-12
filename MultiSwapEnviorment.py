@@ -29,39 +29,38 @@ class swap_enviorment(Env):
             self.max_swaps_per_time_step = np.floor(self.rows * self.cols/2)
         else: 
             self.max_swaps_per_time_step = max_swaps_per_time_step
-        self.max_steps_per_episode = 200
+        self.max_layers = depth_of_code + 10
+        self.max_episode_steps = 200
         #array of possible actions
         self.possible_actions = self.get_possible_actions()
         #Number of actions we can take
         self.action_space = Discrete(len(self.possible_actions))
-        print(self.action_space)
         self.observation_space = Box(low=0, high=np.floor(self.rows * self.cols / 2),
-                                shape=(depth_of_code, rows, cols, ), dtype=np.uint8)
+                                shape=(1, depth_of_code, rows, cols, ), dtype=np.uint8)
         #The start state
         self.state = self.make_state()
-        #max amount of layers per episode
-        self.max_layers = self.depth_of_code
 
 
     def step(self, action: Discrete) -> Tuple[List[int], int, bool, 'info']:
         self.state = self.state.reshape((self.depth_of_code, self.rows*self.cols))
-        self.max_steps_per_episode -= 1
+        self.max_episode_steps -= 1
         swap_matrix = self.possible_actions[action]
         self.state = np.matmul(self.state, swap_matrix)
         # Rewards 
         reward = -1
-        if self.is_executable_state():
-            if action == 0: reward = 0
+        if self.is_executable_state(self.state):
+            if action == 0: 
+                reward = 0
             # remove the exicutable slice and add a new random slice at the tail
             self.state = np.roll(self.state, -1, axis=0)
             self.state[self.depth_of_code - 1] = self.make_state_slice()
-            self.max_layers -= 1
             # we are not done except if this was the last layer we can work on this episode
-            done = self.max_layers <= 0
-        elif self.max_steps_per_episode <= 0:
+            self.max_layers -= 1
+        if self.max_episode_steps <= 0 or self.max_layers <= 0:
             done = True
-            reward = -400
-        else: done = False
+        else:
+            done = False
+
         info = {}
 
         self.state = self.state.reshape((self.depth_of_code, self.rows, self.cols))
@@ -75,7 +74,7 @@ class swap_enviorment(Env):
     def reset(self) -> List[int]:
         self.state = self.make_state()
         self.max_layers = self.depth_of_code
-        self.max_steps_per_episode = 200
+        self.max_episode_steps = 200
         return self.state
 
 #                                             [[1,0,0], [[1,0,0],   [[1,0,0],         [[1,0,0],  
@@ -84,11 +83,11 @@ class swap_enviorment(Env):
 # and checks if all the pairs of numbers in the first slice are neighbors and 
 #if so returns True else returns False
 
-    def is_executable_state(self) -> bool:
+    def is_executable_state(self, state) -> bool:
         for pos in range(self.rows * self.cols):
-            gate = self.state[0][pos]
+            gate = state[0][pos]
             if gate > 0:
-                neighbors = [self.state[0][pos+i] if pos+i >= 0 and pos+i < self.rows*self.cols 
+                neighbors = [state[0][pos+i] if pos+i >= 0 and pos+i < self.rows*self.cols 
                         and not (pos%self.rows == 0 and i == -1) 
                         and not (pos%self.rows == self.rows-1 and i == 1) else 0 
                         for i in [1, -1, self.rows, -self.rows]]
