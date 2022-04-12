@@ -1,4 +1,7 @@
-## Update: Logs rollout, time and train to plot them in tensorboard using tensorboard --logdir '.\logdir\DQNModel(StateToValue)_[#nr]\' command.
+## Update: Logs rollout, time and train to plot them in tensorboard. 
+## Upload tensorboard event file using the command: tensorboard --logdir '.\logdir\DQNModel(StateToValue)_[#nr]\'
+## Tensorboard is the opened in browser with the specified adress in terminal. For me this is http://localhost:6006/
+## This version also creates a .txt file in the .\logdir\DQNModel(StateToValue)_[#nr] directory with the training input.
 
 from MultiSwapEnviorment import swap_enviorment
 
