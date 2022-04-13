@@ -84,13 +84,13 @@ class swap_enviorment(Env):
         return self.state, reward, done, info
         
 
-    def render(self, mode = "human", actionList = [], obsList = []): 
+    def render(self, mode = "human", action_list = [], obs_list = []): 
         if self.screen is None:
             pygame.init()
             pygame.display.init()
             self.screen = pygame.display.set_mode((PG_WIDTH*self.cols,PG_HEIGHT*self.rows))
        
-        print(obsList)
+        print(obs_list)
         num_font = pygame.font.SysFont(None,30)
         img0 = num_font.render('0',True,RED)
         img1 = num_font.render('1',True,RED)
@@ -122,8 +122,9 @@ class swap_enviorment(Env):
          
         #matrix that is used to say which swaps are made
         #for 2x2 [[],[],[],[]]
-        #swap_matrix = self.possible_actions[action]
-        
+        swap_matrix = self.possible_actions[action]
+        print(swap_matrix)
+
         for j in range(1,self.cols+1):
             for i in range(1,self.rows+1):
                 pygame.draw.circle(surface,BLACK,((X_START*j),(Y_START*i)),20)
@@ -136,7 +137,7 @@ class swap_enviorment(Env):
         for j in range(1,self.cols+1):
             for i in range(1,self.rows+1):
                 #surface.blit(dict.get(self.state[0][i-1][j-1]),((X_START*j)-5,(Y_START*i)-8))
-                pygame.draw.circle(surface,dict.get(obsList[0][i-1][j-1]),((X_START*j),(Y_START*i)),15)
+                pygame.draw.circle(surface,dict.get(obs_list[0][i-1][j-1]),((X_START*j),(Y_START*i)),15)
         
         self.screen.blit(surface,(0,0))
         pygame.display.flip()
@@ -144,7 +145,7 @@ class swap_enviorment(Env):
         index = 0
         running = True
 
-        while(index < len(obsList) and running):
+        while(index < len(obs_list) and running):
             ev = pygame.event.get()
 
             for event in ev:
@@ -164,7 +165,7 @@ class swap_enviorment(Env):
 
                     if event.key == pygame.K_n:
                         #next one
-                        if index == len(obsList)-1:
+                        if index == len(obs_list)-1:
                             print("At last obs")
                         else:
                             index += 1
@@ -172,7 +173,7 @@ class swap_enviorment(Env):
                         for j in range(1,self.cols+1):
                             for i in range(1,self.rows+1):
                                 #surface.blit(dict.get(self.state[0][i-1][j-1]),((X_START*j)-5,(Y_START*i)-8))
-                                pygame.draw.circle(surface,dict.get(obsList[index][i-1][j-1]),((X_START*j),(Y_START*i)),15)
+                                pygame.draw.circle(surface,dict.get(obs_list[index][i-1][j-1]),((X_START*j),(Y_START*i)),15)
                         
                         self.screen.blit(surface,(0,0))
                         pygame.display.flip()
@@ -187,7 +188,7 @@ class swap_enviorment(Env):
                         for j in range(1,self.cols+1):
                             for i in range(1,self.rows+1):
                                 #surface.blit(dict.get(self.state[0][i-1][j-1]),((X_START*j)-5,(Y_START*i)-8))
-                                pygame.draw.circle(surface,dict.get(obsList[index][i-1][j-1]),((X_START*j),(Y_START*i)),15)
+                                pygame.draw.circle(surface,dict.get(obs_list[index][i-1][j-1]),((X_START*j),(Y_START*i)),15)
                         
                         self.screen.blit(surface,(0,0))
                         pygame.display.flip()
@@ -202,6 +203,14 @@ class swap_enviorment(Env):
         pygame.time.wait(1000)
 
         return self.isopen
+
+    def action_render(self,action_matrix):
+        action_tuples = []
+        used_nodes = []
+        for i in range(len(action_matrix)):
+            if i not in used_nodes:
+
+
 
     def close(self):
         if self.isopen is not None:
