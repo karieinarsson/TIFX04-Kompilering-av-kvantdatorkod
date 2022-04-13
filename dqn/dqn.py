@@ -18,7 +18,7 @@ from stable_baselines3.common.vec_env import VecEnv
 from stable_baselines3.common.preprocessing import maybe_transpose
 from stable_baselines3.common.type_aliases import GymEnv, MaybeCallback, RolloutReturn, Schedule, TrainFreq, TrainFrequencyUnit
 from stable_baselines3.common.utils import get_linear_fn, is_vectorized_observation, polyak_update, safe_mean, should_collect_more_steps
-
+from stable_baselines3.her.her_replay_buffer import HerReplayBuffer
 
 class DQN(OffPolicyAlgorithm):
     """
@@ -250,7 +250,7 @@ class DQN(OffPolicyAlgorithm):
             current_q_values = self.q_net(replay_data.observations)
             #print(current_q_values)
             # Compute Huber loss (less sensitive to outliers)
-            loss = F.huber_loss(current_q_values, target_q_values)
+            loss = F.mse_loss(current_q_values, target_q_values)
             losses.append(loss.item())
 
             # Optimize the policy
@@ -291,6 +291,7 @@ class DQN(OffPolicyAlgorithm):
         else:
             action, state = self.policy.predict(observation, env, state, episode_start, deterministic)
         return action, state
+
     def learn(
         self,
         total_timesteps: int,
@@ -303,7 +304,6 @@ class DQN(OffPolicyAlgorithm):
         eval_log_path: Optional[str] = None,
         reset_num_timesteps: bool = True,
     ) -> OffPolicyAlgorithm:
-        
         total_timesteps, callback = self._setup_learn(
             total_timesteps,
             eval_env,

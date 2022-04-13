@@ -4,16 +4,16 @@ from gym.envs.registration import register
 
 import numpy as np
 
-from dqn.env_util import make_vec_env
+from stable_baselines3.common.env_util import make_vec_env
 from dqn.dqn import DQN
 from dqn.evaluation import evaluate_policy
 
 depth_of_code = 5
-rows = 2
+rows = 3
 cols = 2
 max_swaps_per_time_step = -1
 
-n_eval_episodes = 100
+n_eval_episodes = 1000
 
 modelDir = "models/"
 

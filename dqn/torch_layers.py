@@ -71,9 +71,9 @@ class NatureCNN(BaseFeaturesExtractor):
         d = 1 if depth_of_code == 1 else depth_of_code // 2
         self.cnn = nn.Sequential(
             nn.Conv3d(n_input_channels, 32, kernel_size=(d,w,h), padding=(0,2,2)),
-            nn.Tanh(),
+            nn.ReLU(),
             nn.Conv3d(32, 16, kernel_size=(1,w,h)),
-            nn.Tanh(),
+            nn.ReLU(),
             nn.Flatten(),
         )
 
@@ -83,9 +83,8 @@ class NatureCNN(BaseFeaturesExtractor):
         
         self.linear = nn.Sequential(
             nn.Linear(n_flatten, 200),
-            nn.Tanh(),
-            nn.Linear(200, 1),
             nn.ReLU(),
+            nn.Linear(200, 1),
         )
         
 

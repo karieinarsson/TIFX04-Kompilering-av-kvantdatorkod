@@ -1,0 +1,31 @@
+Model: DQNModel(StateToValue) 
+
+Environment Variables 
+depth_of_code = 5
+rows = 3
+cols = 2
+max_swaps_per_time_step = -1
+
+Model Variables 
+learning_starts = 50000
+verbose = 1
+exploration_fraction = 1
+exploration_initial_eps = 1
+exploration_final_eps = 0
+batch_size = 512
+learning_rate = 0.001
+target_update_interval = 10000
+tau = 0.5
+gamma = 0.7
+train_freq = 4
+
+Training Variables 
+total_timesteps = 200000
+log_interval = 4
+
+Evaluation 
+n_eval_episodes = 200
+
+Results 
+np.mean(rewards) = -54.0
+mean_reward = -17.635
