@@ -122,7 +122,7 @@ class swap_enviorment(Env):
          
         #matrix that is used to say which swaps are made
         #for 2x2 [[],[],[],[]]
-        swap_matrix = self.possible_actions[action]
+        swap_matrix = self.possible_actions[action_list[0]]
         print(swap_matrix)
 
         for j in range(1,self.cols+1):
@@ -138,7 +138,10 @@ class swap_enviorment(Env):
             for i in range(1,self.rows+1):
                 #surface.blit(dict.get(self.state[0][i-1][j-1]),((X_START*j)-5,(Y_START*i)-8))
                 pygame.draw.circle(surface,dict.get(obs_list[0][i-1][j-1]),((X_START*j),(Y_START*i)),15)
+       
+
         
+
         self.screen.blit(surface,(0,0))
         pygame.display.flip()
 
@@ -205,18 +208,15 @@ class swap_enviorment(Env):
         return self.isopen
 
     def action_render(self,action_matrix):
-        action_tuples = []
-        used_nodes = []
-        for i in range(len(action_matrix)):
-            if i not in used_nodes:
-
-
-
-    def close(self):
-        if self.isopen is not None:
-            pygame.display.quit()
-            pygame.quit()
-            self.isopen = False
+        action_tuples = [] 
+        used_nodes = [] 
+        for i in range(len(action_matrix)): 
+            if i not in used_nodes: 
+                idx = action_matrix[i].index(1) 
+                used_nodes.append(idx) 
+                if idx != i:     
+                    action_tuples.append(tuple((i,idx))) 
+        return action_tuple
 
     def reset(self) -> List[int]:
         self.state = self.make_state()
