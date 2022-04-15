@@ -49,7 +49,7 @@ class swap_enviorment(Env):
         # Rewards
         reward = self.reward_func(self.state)
 
-        if self.is_executable_state(self.state):
+        if reward == -1:
             if action == 0: reward = 0
             # remove the exicutable slice and add a new random slice at the tail
             self.state = np.roll(self.state, -1, axis=0)
