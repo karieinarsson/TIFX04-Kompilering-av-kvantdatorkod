@@ -6,6 +6,7 @@ from typing import List, Tuple
 import copy
 from stable_baselines3.common.env_checker import check_env
 import pygame
+import math
 # types
 Matrix = List[List[int]]
 Action = List[int]
@@ -65,9 +66,11 @@ class swap_enviorment(Env):
         swap_matrix = self.possible_actions[action]
         self.state = np.matmul(self.state, swap_matrix)
         # Rewards 
-        reward = -1
+        reward = -2
         if self.is_executable_state():
-            if action == 0: reward = 0
+            reward = -1
+            if action == 0: 
+                reward = 0
             # remove the exicutable slice and add a new random slice at the tail
             self.state = np.roll(self.state, -1, axis=0)
             self.state[self.depth_of_code - 1] = self.make_state_slice()
@@ -83,6 +86,18 @@ class swap_enviorment(Env):
         self.state = self.state.reshape((self.depth_of_code, self.rows, self.cols))
         return self.state, reward, done, info
         
+    def action_render(self,action_matrix):                                                                                                                                                
+         action_matrix = action_matrix.tolist()
+         action_tuples = [] 
+         used_nodes = [] 
+         for i in range(len(action_matrix)): 
+             if i not in used_nodes: 
+                 idx = action_matrix[i].index(1) 
+                 used_nodes.append(idx)
+                 if idx != i:
+                     action_tuples.append(tuple((i,idx)))
+         return action_tuples
+
 
     def render(self, mode = "human", action_list = [], obs_list = []): 
         if self.screen is None:
@@ -120,10 +135,7 @@ class swap_enviorment(Env):
 
         pygame.draw.rect(surface,WHITE,surface.get_rect())
          
-        #matrix that is used to say which swaps are made
-        #for 2x2 [[],[],[],[]]
-        swap_matrix = self.possible_actions[action_list[0]]
-        print(swap_matrix)
+        #row / col %
 
         for j in range(1,self.cols+1):
             for i in range(1,self.rows+1):
@@ -138,9 +150,29 @@ class swap_enviorment(Env):
             for i in range(1,self.rows+1):
                 #surface.blit(dict.get(self.state[0][i-1][j-1]),((X_START*j)-5,(Y_START*i)-8))
                 pygame.draw.circle(surface,dict.get(obs_list[0][i-1][j-1]),((X_START*j),(Y_START*i)),15)
-       
 
+        swap_matrix = self.possible_actions[action_list[0]]
         
+        tuple_list = self.action_render(swap_matrix)
+
+        print(action_list[0])
+        print(swap_matrix)
+        print(tuple_list)
+
+        for t in tuple_list:
+            r0 = math.floor(t[0]/self.cols)
+            c0 = t[0]%self.cols
+            r1 = math.floor(t[1]/self.cols)
+            c1 = t[1]%self.cols
+            x0 = X_START*(c0+1)
+            y0 = Y_START*(r0+1)
+            x1 = X_START*(c1+1)
+            y1 = Y_START*(r1+1)
+            x = x1+((x0-x1)/2)
+            y = y1+((y0-y1)/2)
+            print(x,y,x0,y0,x1,y1,r0,c0,r1,c1)
+            
+            pygame.draw.circle(surface,BLUE,(x,y),5)
 
         self.screen.blit(surface,(0,0))
         pygame.display.flip()
@@ -177,7 +209,24 @@ class swap_enviorment(Env):
                             for i in range(1,self.rows+1):
                                 #surface.blit(dict.get(self.state[0][i-1][j-1]),((X_START*j)-5,(Y_START*i)-8))
                                 pygame.draw.circle(surface,dict.get(obs_list[index][i-1][j-1]),((X_START*j),(Y_START*i)),15)
+                       
                         
+                        swap_matrix = self.possible_actions[action_list[index]]
+                        tuple_list = self.action_render(swap_matrix)
+
+                        for t in tuple_list:
+                            r0 = math.floor(t[0]/self.cols)
+                            c0 = t[0]%self.cols
+                            r1 = math.floor(t[1]/self.cols)
+                            c1 = t[1]%self.cols
+                            x0 = X_START*(c0+1)
+                            y0 = Y_START*(r0+1)
+                            x1 = X_START*(c1+1)
+                            y1 = Y_START*(r1+1)
+                            x = x1+((x0-x1)/2)
+                            y = y1+((y0-y1)/2)
+                            pygame.draw.circle(surface,BLUE,(x,y),5)
+
                         self.screen.blit(surface,(0,0))
                         pygame.display.flip()
 
@@ -206,17 +255,6 @@ class swap_enviorment(Env):
         pygame.time.wait(1000)
 
         return self.isopen
-
-    def action_render(self,action_matrix):
-        action_tuples = [] 
-        used_nodes = [] 
-        for i in range(len(action_matrix)): 
-            if i not in used_nodes: 
-                idx = action_matrix[i].index(1) 
-                used_nodes.append(idx) 
-                if idx != i:     
-                    action_tuples.append(tuple((i,idx))) 
-        return action_tuple
 
     def reset(self) -> List[int]:
         self.state = self.make_state()

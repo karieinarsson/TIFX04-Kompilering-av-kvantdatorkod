@@ -33,6 +33,7 @@ actionList = []
 for i in range(1):
     action, _states = model.predict(obs, deterministic=True)
     actionList.append(action)
+    #only add first obs since it removes the first one to step
     obsList.extend(obs.tolist())
     obs, rewards, dones, info = env.step(action)
 
