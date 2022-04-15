@@ -20,24 +20,23 @@ model = DQN.load(modelDir + modelName, env=env)
 # NOTE: If you use wrappers with your environment that modify rewards,
 #       this will be reflected here. To evaluate with original rewards,
 #       wrap environment in a "Monitor" wrapper before other wrappers.
-mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=1000)
+#mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=1000)
 
-print(mean_reward)
+#print(mean_reward)
 
 
 obs = env.reset()
+render_list = []
+done = False
+render_list.append(obs[0].tolist())
 
-obsList = []
-actionList = []
-
-for i in range(1):
+while not done:
     action, _states = model.predict(obs, deterministic=True)
-    actionList.append(action)
-    #only add first obs since it removes the first one to step
-    obsList.extend(obs.tolist())
-    obs, rewards, dones, info = env.step(action)
-
-print(actionList)
-print(obsList)
-env.render("human",actionList, obsList)
+    if action != 0:
+        render_list.append(action)
+    #only add first obs since it removes the first one to step 
+    obs,_,done,_ = env.step(action)
+    render_list.append(obs[0].tolist())
+    
+env.render("human",render_list)
 
