@@ -10,14 +10,14 @@ from dqn.evaluation import evaluate_policy
 
 depth_of_code = 5
 rows = 3
-cols = 2
+cols = 3
 max_swaps_per_time_step = -1
 
 n_eval_episodes = 1000
 
 modelDir = "models/"
 
-modelName = "DQNModel(StateToValue).zip"
+modelName = "DQNModel(StateToValue,10mil_step).zip"
 
 register(
     id="MultiSwapEnviorment-v0",
@@ -52,7 +52,7 @@ while episode < n_eval_episodes:
         episode += 1
         env.reset()
 
-print(f"Mean reward random: {np.mean(rewards)}")
+print(f"Mean reward random: {np.mean(rewards)} +/- {np.std(rewards)}")
 
 mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=n_eval_episodes)
-print(f"Mean reward model: {mean_reward}")
+print(f"Mean reward model: {mean_reward} +/- {std_reward}")

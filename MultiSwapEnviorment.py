@@ -46,12 +46,10 @@ class swap_enviorment(Env):
         self.max_episode_steps -= 1
         swap_matrix = self.possible_actions[action]
         self.state = np.matmul(self.state, swap_matrix)
-        # Rewards 
-        reward = -2
+        # Rewards
+        reward = self.reward_func(self.state, action)
+
         if self.is_executable_state(self.state):
-            reward = -1
-            if action == 0: 
-                reward = 0
             # remove the exicutable slice and add a new random slice at the tail
             self.state = np.roll(self.state, -1, axis=0)
             self.state[self.depth_of_code - 1] = self.make_state_slice()
@@ -131,9 +129,9 @@ class swap_enviorment(Env):
                                         possible_actions.append(action)
 
         if iterations == self.max_swaps_per_time_step:
-            return_possible_actions = []
-            return_possible_actions.append(np.identity(self.rows*self.cols))
-            for action in possible_actions:
+            return_possible_actions = np.zeros((len(possible_actions)+1, self.rows*self.cols, self.rows*self.cols))
+            return_possible_actions[0] = np.identity(self.rows*self.cols)
+            for idx, action in enumerate(possible_actions):
                 m = np.identity(self.rows*self.cols)
                 for swap in action:
                     pos1, pos2 = swap
@@ -141,7 +139,7 @@ class swap_enviorment(Env):
                     m[pos2][pos2] = 0
                     m[pos1][pos2] = 1
                     m[pos2][pos1] = 1
-                return_possible_actions.append(m)
+                return_possible_actions[idx+1] = m
             return return_possible_actions
         
         return possible_actions
@@ -171,6 +169,13 @@ class swap_enviorment(Env):
         for i in range(len(state)):
             state[i] = self.make_state_slice().reshape((self.rows, self.cols))
         return state
+
+    def reward_func(self, state, action) -> int:
+        if self.is_executable_state(state):
+            if action == 0:
+                return 0
+            return -1
+        return -2
 
 if __name__ == '__main__':
     main()
