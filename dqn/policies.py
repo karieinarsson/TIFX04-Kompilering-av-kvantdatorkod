@@ -210,15 +210,14 @@ class DQNPolicy(BasePolicy):
                 actions[idx] = 0
                 continue
             
-            new_obs_ = np.matmul(obs, possible_actions)
+            new_obs = np.matmul(obs, possible_actions)
 
             with th.no_grad():
-                new_obs = th.from_numpy(new_obs_.reshape((len(possible_actions),x,d,r,c)))
-                value = self._predict(new_obs, deterministic=deterministic)
+                tensor_obs = th.from_numpy(new_obs.reshape((len(possible_actions),x,d,r,c)))
+                value = self._predict(tensor_obs, deterministic=deterministic)
                 
-            for i, o in enumerate(new_obs_):
-                if not env.envs[0].is_executable_state(o):
-                    value[i] -= 1
+            for i, o in enumerate(new_obs):
+                value[i] += env.envs[0].reward_func(o)
             
             actions[idx] = np.argmax(value)
         

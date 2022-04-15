@@ -47,9 +47,10 @@ class swap_enviorment(Env):
         swap_matrix = self.possible_actions[action]
         self.state = np.matmul(self.state, swap_matrix)
         # Rewards
-        reward = self.reward_func(self.state, action)
+        reward = self.reward_func(self.state)
 
         if self.is_executable_state(self.state):
+            if action == 0: reward = 0
             # remove the exicutable slice and add a new random slice at the tail
             self.state = np.roll(self.state, -1, axis=0)
             self.state[self.depth_of_code - 1] = self.make_state_slice()
@@ -170,10 +171,8 @@ class swap_enviorment(Env):
             state[i] = self.make_state_slice().reshape((self.rows, self.cols))
         return state
 
-    def reward_func(self, state, action) -> int:
+    def reward_func(self, state) -> int:
         if self.is_executable_state(state):
-            if action == 0:
-                return 0
             return -1
         return -2
 

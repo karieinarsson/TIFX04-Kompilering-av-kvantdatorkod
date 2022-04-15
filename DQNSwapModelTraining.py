@@ -89,6 +89,8 @@ model = DQN('CnnPolicy',
             tensorboard_log=logdir
         )
 
+
+
 # Train the agent
 model.learn(total_timesteps = total_timesteps, 
             log_interval = log_interval, 
