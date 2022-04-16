@@ -5,10 +5,26 @@ import math
 from typing import List, Tuple
 import copy
 from stable_baselines3.common.env_checker import check_env
-
+import pygame
+import math
 # types
 Matrix = List[List[int]]
 Action = List[int]
+
+#pygame constants
+PG_WIDTH  = 100
+PG_HEIGHT = 100
+X_START   = PG_WIDTH*0.6
+Y_START   = PG_HEIGHT*0.6
+#Colors
+WHITE   = (255,255,255)
+BLACK   = (0,0,0)
+BLUE    = (0,0,255)
+GREEN   = (0,255,0)
+RED     = (255,0,0)
+CYAN    = (0,255,255)
+PURPLE  = (255,0,255)
+YELLOW  = (255,255,0)
 
 def main():
     env = swap_enviorment(10,3,3)
@@ -39,8 +55,13 @@ class swap_enviorment(Env):
                                 shape=(1, depth_of_code, rows, cols, ), dtype=np.uint8)
         #The start state
         self.state = self.make_state()
-
-
+        #max amount of layers per episode
+        self.max_layers = self.depth_of_code
+        
+        #pygame screen initialization
+        self.screen = None
+        self.isopen = True
+    
     def step(self, action: Discrete) -> Tuple[List[int], int, bool, 'info']:
         self.state = self.state.reshape((self.depth_of_code, self.rows*self.cols))
         self.max_episode_steps -= 1
@@ -67,10 +88,184 @@ class swap_enviorment(Env):
         self.state = self.state.reshape((self.depth_of_code, self.rows, self.cols))
         return self.state, reward, done, info
         
+    def action_render(self,action_matrix):                                                                                                                                                
+         action_matrix = action_matrix.tolist()
+         action_tuples = [] 
+         used_nodes = [] 
+         for i in range(len(action_matrix)): 
+             if i not in used_nodes: 
+                 idx = action_matrix[i].index(1) 
+                 used_nodes.append(idx)
+                 if idx != i:
+                     action_tuples.append(tuple((i,idx)))
+         return action_tuples
 
-    def render(self, mode = "human"): 
-        pass
-    
+
+    def render(self, mode = "human", render_list = None): 
+        if render_list is None:
+            return 
+        if self.screen is None:
+            pygame.init()
+            pygame.display.init()
+            self.screen = pygame.display.set_mode((PG_WIDTH*self.cols,PG_HEIGHT*self.rows))
+       
+        num_font = pygame.font.SysFont(None,25)
+        img0 = num_font.render('0',True,RED)
+        img1 = num_font.render('1',True,RED)
+        img2 = num_font.render('2',True,RED)
+        img3 = num_font.render('3',True,RED)
+        img4 = num_font.render('4',True,RED)
+        img5 = num_font.render('5',True,RED)
+        img6 = num_font.render('6',True,RED)
+        img7 = num_font.render('7',True,RED)
+        img8 = num_font.render('8',True,RED)
+        img9 = num_font.render('9',True,RED) 
+        s_img = num_font.render('S',True,BLACK)
+        
+        dict={
+            0:RED,
+            1:GREEN,
+            2:BLUE,
+            3:PURPLE,
+            4:YELLOW,
+            5:img5,
+            6:img6,
+            7:img7,
+            8:img8,
+            9:img9
+            }
+
+        surface = pygame.Surface(self.screen.get_size())
+
+        pygame.draw.rect(surface,WHITE,surface.get_rect())
+         
+        #row / col %
+
+        for j in range(1,self.cols+1):
+            for i in range(1,self.rows+1):
+                pygame.draw.circle(surface,BLACK,((X_START*j),(Y_START*i)),20)
+                if j < self.rows:
+                    pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*(j+1)),((Y_START*i))),4)
+                if i < self.cols: 
+                    pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*j),((Y_START*(i+1)))),4)
+                pygame.draw.circle(surface,dict.get(render_list[0][i-1][j-1]),((X_START*j),(Y_START*i)),15)
+
+        self.screen.blit(surface,(0,0))
+        pygame.display.flip()
+
+        index = 0
+        running = True
+
+        while running:
+            ev = pygame.event.get()
+
+            for event in ev:
+
+                if event.type == pygame.QUIT:
+                    running = False
+
+                if event.type == pygame.KEYDOWN:
+                    if index%2 == 0:                    
+                        pygame.draw.rect(surface,WHITE,surface.get_rect())
+                        for j in range(1,self.cols+1):
+                            for i in range(1,self.rows+1):
+                                pygame.draw.circle(surface,BLACK,((X_START*j),(Y_START*i)),20)
+                                if j < self.rows:
+                                    pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*(j+1)),((Y_START*i))),4)
+                                if i < self.cols: 
+                                    pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*j),((Y_START*(i+1)))),4)
+
+                    if event.key == pygame.K_n:
+                        #next one
+                        if index == len(render_list)-1:
+                            print("At last obs")
+                        else:
+                            index += 1
+                        
+                        if type(render_list[index]) is list:
+                            pygame.draw.rect(surface,WHITE,surface.get_rect())
+                            for j in range(1,self.cols+1):
+                                for i in range(1,self.rows+1):
+                                    pygame.draw.circle(surface,BLACK,((X_START*j),(Y_START*i)),20)
+                                    if j < self.rows:
+                                        pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*(j+1)),((Y_START*i))),4)
+                                    if i < self.cols: 
+                                        pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*j),((Y_START*(i+1)))),4)
+                                    pygame.draw.circle(surface,dict.get(render_list[index][i-1][j-1]),((X_START*j),(Y_START*i)),15)
+                       
+                        else:
+                            for j in range(1,self.cols+1):
+                                for i in range(1,self.rows+1):
+                                    pygame.draw.circle(surface,dict.get(render_list[index-1][i-1][j-1]),((X_START*j),(Y_START*i)),15)
+                            swap_matrix = self.possible_actions[render_list[index]]
+                            tuple_list = self.action_render(swap_matrix)
+
+                            for t in tuple_list:
+                                r0 = math.floor(t[0]/self.cols)
+                                c0 = t[0]%self.cols
+                                r1 = math.floor(t[1]/self.cols)
+                                c1 = t[1]%self.cols
+                                x0 = X_START*(c0+1)
+                                y0 = Y_START*(r0+1)
+                                x1 = X_START*(c1+1)
+                                y1 = Y_START*(r1+1)
+                                x = x1+((x0-x1)/2)
+                                y = y1+((y0-y1)/2)
+                                pygame.draw.rect(surface,CYAN,pygame.Rect((x-10,y-10),(20,20)))
+                                surface.blit(s_img,(x-6,y-8))
+
+                        self.screen.blit(surface,(0,0))
+                        pygame.display.flip()
+
+                    if event.key == pygame.K_b:
+                        #back one
+                        if index == 0:
+                            print("At first obs")
+                        else:    
+                            index -= 1
+                        
+                        if type(render_list[index]) is list:
+                            pygame.draw.rect(surface,WHITE,surface.get_rect())
+                            for j in range(1,self.cols+1):
+                                for i in range(1,self.rows+1):
+                                    pygame.draw.circle(surface,BLACK,((X_START*j),(Y_START*i)),20)
+                                    if j < self.rows:
+                                        pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*(j+1)),((Y_START*i))),4)
+                                    if i < self.cols: 
+                                        pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*j),((Y_START*(i+1)))),4)
+                                    pygame.draw.circle(surface,dict.get(render_list[index][i-1][j-1]),((X_START*j),(Y_START*i)),15)
+                        
+                        else:
+                            for j in range(1,self.cols+1):
+                                for i in range(1,self.rows+1):
+                                    pygame.draw.circle(surface,dict.get(render_list[index-1][i-1][j-1]),((X_START*j),(Y_START*i)),15)
+                            swap_matrix = self.possible_actions[render_list[index]]
+                            tuple_list = self.action_render(swap_matrix)
+
+                            for t in tuple_list:
+                                r0 = math.floor(t[0]/self.cols)
+                                c0 = t[0]%self.cols
+                                r1 = math.floor(t[1]/self.cols)
+                                c1 = t[1]%self.cols
+                                x0 = X_START*(c0+1)
+                                y0 = Y_START*(r0+1)
+                                x1 = X_START*(c1+1)
+                                y1 = Y_START*(r1+1)
+                                x = x1+((x0-x1)/2)
+                                y = y1+((y0-y1)/2)
+                                pygame.draw.rect(surface,CYAN,pygame.Rect((x-10,y-10),(20,20)))
+                                surface.blit(s_img,(x-6,y-8))
+
+                        self.screen.blit(surface,(0,0))
+                        pygame.display.flip()
+
+
+
+        self.screen.blit(surface,(0,0))
+
+        pygame.event.pump()
+        pygame.display.flip()
+        return self.isopen
 
     def reset(self) -> List[int]:
         self.state = self.make_state()

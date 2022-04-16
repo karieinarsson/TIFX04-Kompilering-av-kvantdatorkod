@@ -25,7 +25,7 @@ register(
     max_episode_steps=200,
 )
 
-venv = make_vec_env("MultiSwapEnviorment-v0", env_kwargs = {"depth_of_code": depth_of_code, "rows": rows, "cols": cols, "max_swaps_per_time_step": max_swaps_per_time_step})
+env = swap_enviorment(10, 2, 2, 2)
 
 # Load the trained agent
 # NOTE: if you have loading issue, you can pass `print_system_info=True`
@@ -37,22 +37,40 @@ model = DQN.load(modelDir + modelName, env=venv)
 # NOTE: If you use wrappers with your environment that modify rewards,
 #       this will be reflected here. To evaluate with original rewards,
 #       wrap environment in a "Monitor" wrapper before other wrappers.
+#mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=1000)
+
+#print(mean_reward)
 
 
-rewards = np.zeros(n_eval_episodes)
-current_reward, episode = 0, 0
-env = swap_enviorment(depth_of_code, rows, cols, max_swaps_per_time_step)
-while episode < n_eval_episodes:
-    action = env.action_space.sample()
-    _, reward, done, _ = env.step(action)
-    current_reward += reward
-    if done:
-        rewards[episode] = current_reward
-        current_reward = 0
-        episode += 1
-        env.reset()
+obs = env.reset()
+render_list = []
+done = False
+render_list.append(obs[0].tolist())
 
-print(f"Mean reward random: {np.mean(rewards)} +/- {np.std(rewards)}")
+while not done:
+    action, _states = model.predict(obs, deterministic=True)
+    if action != 0:
+        render_list.append(action)
+    #only add first obs since it removes the first one to step 
+    obs,_,done,_ = env.step(action)
+    render_list.append(obs[0].tolist())
+    
+env.render("human",render_list)
 
-mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=n_eval_episodes)
-print(f"Mean reward model: {mean_reward} +/- {std_reward}")
+#rewards = np.zeros(n_eval_episodes)
+#current_reward, episode = 0, 0
+#env = swap_enviorment(depth_of_code, rows, cols, max_swaps_per_time_step)
+#while episode < n_eval_episodes:
+#    action = env.action_space.sample()
+#    _, reward, done, _ = env.step(action)
+#    current_reward += reward
+#    if done:
+#        rewards[episode] = current_reward
+#        current_reward = 0
+#        episode += 1
+#        env.reset()
+#
+#print(f"Mean reward random: {np.mean(rewards)} +/- {np.std(rewards)}")
+#
+#mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=n_eval_episodes)
+#print(f"Mean reward model: {mean_reward} +/- {std_reward}")
