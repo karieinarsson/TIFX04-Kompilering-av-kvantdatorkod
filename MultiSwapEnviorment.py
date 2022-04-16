@@ -123,7 +123,7 @@ class swap_enviorment(Env):
         s_img = num_font.render('S',True,BLACK)
         
         dict={
-            0:RED,
+            0:BLACK,
             1:GREEN,
             2:BLUE,
             3:PURPLE,

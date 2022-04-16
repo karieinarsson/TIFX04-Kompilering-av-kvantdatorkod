@@ -78,7 +78,7 @@ class SwapVecEnv(VecEnv):
     def get_images(self) -> Sequence[np.ndarray]:
         return [env.render(mode="rgb_array") for env in self.envs]
 
-    def render(self, mode: str = "human") -> Optional[np.ndarray]:
+    def render(self, mode, render_list: str = "human") -> Optional[np.ndarray]:
         """
         Gym environment rendering. If there are multiple environments then
         they are tiled together in one image via ``BaseVecEnv.render()``.
@@ -91,9 +91,9 @@ class SwapVecEnv(VecEnv):
         :param mode: The rendering type.
         """
         if self.num_envs == 1:
-            return self.envs[0].render(mode=mode)
+            return self.envs[0].render(mode=mode, render_list=render_list)
         else:
-            return super().render(mode=mode)
+            return super().render(mode=mode, render_list=render_list)
 
     def _save_obs(self, env_idx: int, obs: VecEnvObs) -> None:
         for key in self.keys:
