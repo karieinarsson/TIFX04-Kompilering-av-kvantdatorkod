@@ -14,6 +14,8 @@ from dqn.torch_layers import (
 )
 from stable_baselines3.common.type_aliases import Schedule
 
+CnnPolicy = DQNPolicy
+register_policy("CnnPolicy", DQNPolicy)
 
 class QNetwork(BasePolicy):
     """

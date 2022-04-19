@@ -4,6 +4,11 @@ import importlib
 import os
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
+import sys
+sys.path.append('../')
+from dqn import DQNCustom
+from MultiSwapEnvironment import swap_environment
+
 import gym
 import stable_baselines3 as sb3  # noqa: F401
 import torch as th  # noqa: F401
@@ -30,6 +35,7 @@ ALGOS = {
     "qrdqn": QRDQN,
     "tqc": TQC,
     "trpo": TRPO,
+    "dqn_custom": DQNCustom
 }
 
 
