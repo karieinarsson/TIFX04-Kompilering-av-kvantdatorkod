@@ -25,6 +25,11 @@ RED     = (255,0,0)
 CYAN    = (0,255,255)
 PURPLE  = (255,0,255)
 YELLOW  = (255,255,0)
+BROWN   = (165,42,42)
+PINK    = (255,20,147)
+GREY    = (50.2,50.2,50.2)
+PURPLE  = (50.2,0,50.2)
+LIME    = (191,255,0)
 
 def main():
     env = swap_enviorment(10,3,3)
@@ -87,19 +92,6 @@ class swap_enviorment(Env):
 
         self.state = self.state.reshape((self.depth_of_code, self.rows, self.cols))
         return self.state, reward, done, info
-        
-    def action_render(self,action_matrix):                                                                                                                                                
-         action_matrix = action_matrix.tolist()
-         action_tuples = [] 
-         used_nodes = [] 
-         for i in range(len(action_matrix)): 
-             if i not in used_nodes: 
-                 idx = action_matrix[i].index(1) 
-                 used_nodes.append(idx)
-                 if idx != i:
-                     action_tuples.append(tuple((i,idx)))
-         return action_tuples
-
 
     def render(self, mode = "human", render_list = None): 
         if render_list is None:
@@ -128,12 +120,35 @@ class swap_enviorment(Env):
             2:BLUE,
             3:PURPLE,
             4:YELLOW,
-            5:img5,
-            6:img6,
-            7:img7,
-            8:img8,
-            9:img9
+            5:BROWN,
+            6:PINK,
+            7:GREY,
+            8:PURPLE,
+            9:LIME
             }
+
+        num_dict={
+                0:img0,
+                1:img1,
+                2:img2,
+                3:img3,            
+                4:img4,            
+                5:img5,
+                6:img6,
+                7:img7,
+                8:img8,
+                9:img9  
+                }
+        
+        num_matrix = []                
+        tmp = 0            
+        for _ in range(self.rows):     
+            tmpm = []              
+            for _ in range(self.cols): 
+                tmpm.append(tmp)       
+                tmp += 1               
+            num_matrix.append(tmpm) 
+
 
         surface = pygame.Surface(self.screen.get_size())
 
@@ -149,6 +164,7 @@ class swap_enviorment(Env):
                 if i < self.cols: 
                     pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*j),((Y_START*(i+1)))),4)
                 pygame.draw.circle(surface,dict.get(render_list[0][i-1][j-1]),((X_START*j),(Y_START*i)),15)
+                surface.blit(num_dict.get(num_matrix[i-1][j-1]),((X_START*j)-5,(Y_START*i)-5))
 
         self.screen.blit(surface,(0,0))
         pygame.display.flip()
@@ -174,6 +190,7 @@ class swap_enviorment(Env):
                                     pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*(j+1)),((Y_START*i))),4)
                                 if i < self.cols: 
                                     pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*j),((Y_START*(i+1)))),4)
+                                    surface.blit(num_dict.get(num_matrix[i-1][j-1]),((X_START*j)-5,(Y_START*i)-5))
 
                     if event.key == pygame.K_n:
                         #next one
@@ -184,6 +201,7 @@ class swap_enviorment(Env):
                         
                         if type(render_list[index]) is list:
                             pygame.draw.rect(surface,WHITE,surface.get_rect())
+
                             for j in range(1,self.cols+1):
                                 for i in range(1,self.rows+1):
                                     pygame.draw.circle(surface,BLACK,((X_START*j),(Y_START*i)),20)
@@ -192,11 +210,15 @@ class swap_enviorment(Env):
                                     if i < self.cols: 
                                         pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*j),((Y_START*(i+1)))),4)
                                     pygame.draw.circle(surface,dict.get(render_list[index][i-1][j-1]),((X_START*j),(Y_START*i)),15)
+                                    surface.blit(num_dict.get(num_matrix[i-1][j-1]),((X_START*j)-5,(Y_START*i)-5))
+
+                            
                        
                         else:
                             for j in range(1,self.cols+1):
                                 for i in range(1,self.rows+1):
                                     pygame.draw.circle(surface,dict.get(render_list[index-1][i-1][j-1]),((X_START*j),(Y_START*i)),15)
+                                    surface.blit(num_dict.get(num_matrix[i-1][j-1]),((X_START*j)-5,(Y_START*i)-5))
                             swap_matrix = self.possible_actions[render_list[index]]
                             tuple_list = self.action_render(swap_matrix)
 
@@ -213,6 +235,9 @@ class swap_enviorment(Env):
                                 y = y1+((y0-y1)/2)
                                 pygame.draw.rect(surface,CYAN,pygame.Rect((x-10,y-10),(20,20)))
                                 surface.blit(s_img,(x-6,y-8))
+                            
+                            num_matrix_tmp = np.matmul(np.asarray(num_matrix).reshape(self.rows*self.cols),swap_matrix)
+                            num_matrix = num_matrix_tmp.reshape((self.rows,self.cols)).tolist()
 
                         self.screen.blit(surface,(0,0))
                         pygame.display.flip()
@@ -234,14 +259,21 @@ class swap_enviorment(Env):
                                     if i < self.cols: 
                                         pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*j),((Y_START*(i+1)))),4)
                                     pygame.draw.circle(surface,dict.get(render_list[index][i-1][j-1]),((X_START*j),(Y_START*i)),15)
+                                    surface.blit(num_dict.get(num_matrix[i-1][j-1]),((X_START*j)-5,(Y_START*i)-5))
                         
-                        else:
+                        else: 
+                            num_matrix_tmp = np.matmul(np.asarray(num_matrix).reshape(self.rows*self.cols),swap_matrix.T)
+                            num_matrix = num_matrix_tmp.reshape((self.rows,self.cols)).tolist()
+                            for i in range(len(num_matrix)): 
+                                num_matrix[i] = list(map(int,num_matrix[i]))
+
                             for j in range(1,self.cols+1):
                                 for i in range(1,self.rows+1):
                                     pygame.draw.circle(surface,dict.get(render_list[index-1][i-1][j-1]),((X_START*j),(Y_START*i)),15)
+                                    surface.blit(num_dict.get(num_matrix[i-1][j-1]),((X_START*j)-5,(Y_START*i)-5))
                             swap_matrix = self.possible_actions[render_list[index]]
                             tuple_list = self.action_render(swap_matrix)
-
+                            
                             for t in tuple_list:
                                 r0 = math.floor(t[0]/self.cols)
                                 c0 = t[0]%self.cols
@@ -255,6 +287,8 @@ class swap_enviorment(Env):
                                 y = y1+((y0-y1)/2)
                                 pygame.draw.rect(surface,CYAN,pygame.Rect((x-10,y-10),(20,20)))
                                 surface.blit(s_img,(x-6,y-8))
+                           
+
 
                         self.screen.blit(surface,(0,0))
                         pygame.display.flip()
@@ -370,6 +404,19 @@ class swap_enviorment(Env):
         if self.is_executable_state(state):
             return -1
         return -2
+
+
+    def action_render(self,action_matrix):                                                                                                                                                
+         action_matrix = action_matrix.tolist()
+         action_tuples = [] 
+         used_nodes = [] 
+         for i in range(len(action_matrix)): 
+             if i not in used_nodes: 
+                 idx = action_matrix[i].index(1) 
+                 used_nodes.append(idx)
+                 if idx != i:
+                     action_tuples.append(tuple((i,idx)))
+         return action_tuples
 
 if __name__ == '__main__':
     main()
