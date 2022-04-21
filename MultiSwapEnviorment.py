@@ -204,8 +204,6 @@ class swap_enviorment(Env):
 
                             if type(render_list[index]) is list:
                                 pygame.draw.rect(surface,WHITE,surface.get_rect())
-                                #Behöver hoppa över om det inte är någon action 0
-                            
                                 for j in range(1,self.cols+1):
                                     for i in range(1,self.rows+1):
                                         pygame.draw.circle(surface,BLACK,((X_START*j),(Y_START*i)),20)
@@ -215,17 +213,8 @@ class swap_enviorment(Env):
                                             pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*j),((Y_START*(i+1)))),4)
                                         pygame.draw.circle(surface,dict.get(render_list[index][i-1][j-1]),((X_START*j),(Y_START*i)),15)
                                         surface.blit(num_dict.get(num_matrix[i-1][j-1]),((X_START*j)-5,(Y_START*i)-5))
-
-                                
-                                
-                                print(num_matrix)
-                       
                             else:
                                 swap_matrix = self.possible_actions[render_list[index]]
-                                #num_matrix_tmp = np.matmul(np.asarray(num_matrix).reshape(self.rows*self.cols),swap_matrix.T)
-                                #num_matrix = num_matrix_tmp.reshape((self.rows,self.cols)).tolist()
-                                #for i in range(len(num_matrix)): 
-                                #    num_matrix[i] = list(map(int,num_matrix[i]))
 
                                 for j in range(1,self.cols+1):
                                     for i in range(1,self.rows+1):
@@ -275,13 +264,8 @@ class swap_enviorment(Env):
                                         pygame.draw.circle(surface,dict.get(render_list[index][i-1][j-1]),((X_START*j),(Y_START*i)),15)
                                         surface.blit(num_dict.get(num_matrix[i-1][j-1]),((X_START*j)-5,(Y_START*i)-5))
                                  
-                                print(num_matrix)
                             else: 
                                 swap_matrix = self.possible_actions[render_list[index]]
-                                #num_matrix_tmp = np.matmul(np.asarray(num_matrix).reshape(self.rows*self.cols),swap_matrix.T)
-                                #num_matrix = num_matrix_tmp.reshape((self.rows,self.cols)).tolist()
-                                #for i in range(len(num_matrix)): 
-                                #    num_matrix[i] = list(map(int,num_matrix[i]))
 
                                 for j in range(1,self.cols+1):
                                     for i in range(1,self.rows+1):
