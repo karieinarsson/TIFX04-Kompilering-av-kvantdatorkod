@@ -171,8 +171,6 @@ class swap_enviorment(Env):
 
         index = 0
         running = True
-        swap_matrix = self.possible_actions[0]
-        print(render_list)
 
         while running:
             ev = pygame.event.get()
