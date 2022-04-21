@@ -172,6 +172,7 @@ class swap_enviorment(Env):
         index = 0
         running = True
         swap_matrix = self.possible_actions[0]
+        print(render_list)
 
         while running:
             ev = pygame.event.get()
@@ -203,11 +204,7 @@ class swap_enviorment(Env):
 
                             if type(render_list[index]) is list:
                                 pygame.draw.rect(surface,WHITE,surface.get_rect())
-                                if index < len(render_list)-1:
-                                    num_matrix_tmp = np.matmul(swap_matrix,np.asarray(num_matrix).reshape(self.rows*self.cols))
-                                    num_matrix = num_matrix_tmp.reshape((self.rows,self.cols)).tolist()
-                                    for i in range(len(num_matrix)): 
-                                        num_matrix[i] = list(map(int,num_matrix[i]))
+                                #Behöver hoppa över om det inte är någon action 0
                             
                                 for j in range(1,self.cols+1):
                                     for i in range(1,self.rows+1):
@@ -219,7 +216,9 @@ class swap_enviorment(Env):
                                         pygame.draw.circle(surface,dict.get(render_list[index][i-1][j-1]),((X_START*j),(Y_START*i)),15)
                                         surface.blit(num_dict.get(num_matrix[i-1][j-1]),((X_START*j)-5,(Y_START*i)-5))
 
-                            
+                                
+                                
+                                print(num_matrix)
                        
                             else:
                                 swap_matrix = self.possible_actions[render_list[index]]
@@ -233,6 +232,10 @@ class swap_enviorment(Env):
                                         pygame.draw.circle(surface,dict.get(render_list[index-1][i-1][j-1]),((X_START*j),(Y_START*i)),15)
                                         surface.blit(num_dict.get(num_matrix[i-1][j-1]),((X_START*j)-5,(Y_START*i)-5))
                                 tuple_list = self.action_render(swap_matrix)
+                                   
+                                num_matrix = np.matmul(swap_matrix,np.asarray(num_matrix).reshape(self.rows*self.cols)).reshape((self.rows,self.cols)).tolist()
+                                for i in range(len(num_matrix)): 
+                                    num_matrix[i] = list(map(int,num_matrix[i]))
 
                                 for t in tuple_list:
                                     r0 = math.floor(t[0]/self.cols)
@@ -259,49 +262,53 @@ class swap_enviorment(Env):
                         else:    
                             index -= 1
                         
-                        if type(render_list[index]) is list:
-                            pygame.draw.rect(surface,WHITE,surface.get_rect())
-                            for j in range(1,self.cols+1):
-                                for i in range(1,self.rows+1):
-                                    pygame.draw.circle(surface,BLACK,((X_START*j),(Y_START*i)),20)
-                                    if j < self.rows:
-                                        pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*(j+1)),((Y_START*i))),4)
-                                    if i < self.cols: 
-                                        pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*j),((Y_START*(i+1)))),4)
-                                    pygame.draw.circle(surface,dict.get(render_list[index][i-1][j-1]),((X_START*j),(Y_START*i)),15)
-                                    surface.blit(num_dict.get(num_matrix[i-1][j-1]),((X_START*j)-5,(Y_START*i)-5))
-                        
-                        else: 
-                            swap_matrix = self.possible_actions[render_list[index]]
-                            num_matrix_tmp = np.matmul(np.asarray(num_matrix).reshape(self.rows*self.cols),swap_matrix.T)
-                            num_matrix = num_matrix_tmp.reshape((self.rows,self.cols)).tolist()
-                            for i in range(len(num_matrix)): 
-                                num_matrix[i] = list(map(int,num_matrix[i]))
-
-                            for j in range(1,self.cols+1):
-                                for i in range(1,self.rows+1):
-                                    pygame.draw.circle(surface,dict.get(render_list[index-1][i-1][j-1]),((X_START*j),(Y_START*i)),15)
-                                    surface.blit(num_dict.get(num_matrix[i-1][j-1]),((X_START*j)-5,(Y_START*i)-5))
-                            tuple_list = self.action_render(swap_matrix)
+                            if type(render_list[index]) is list:
+                                pygame.draw.rect(surface,WHITE,surface.get_rect())
                             
-                            for t in tuple_list:
-                                r0 = math.floor(t[0]/self.cols)
-                                c0 = t[0]%self.cols
-                                r1 = math.floor(t[1]/self.cols)
-                                c1 = t[1]%self.cols
-                                x0 = X_START*(c0+1)
-                                y0 = Y_START*(r0+1)
-                                x1 = X_START*(c1+1)
-                                y1 = Y_START*(r1+1)
-                                x = x1+((x0-x1)/2)
-                                y = y1+((y0-y1)/2)
-                                pygame.draw.rect(surface,CYAN,pygame.Rect((x-10,y-10),(20,20)))
-                                surface.blit(s_img,(x-6,y-8))
+                                for j in range(1,self.cols+1):
+                                    for i in range(1,self.rows+1):
+                                        pygame.draw.circle(surface,BLACK,((X_START*j),(Y_START*i)),20)
+                                        if j < self.rows:
+                                            pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*(j+1)),((Y_START*i))),4)
+                                        if i < self.cols: 
+                                            pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*j),((Y_START*(i+1)))),4)
+                                        pygame.draw.circle(surface,dict.get(render_list[index][i-1][j-1]),((X_START*j),(Y_START*i)),15)
+                                        surface.blit(num_dict.get(num_matrix[i-1][j-1]),((X_START*j)-5,(Y_START*i)-5))
+                                 
+                                print(num_matrix)
+                            else: 
+                                swap_matrix = self.possible_actions[render_list[index]]
+                                #num_matrix_tmp = np.matmul(np.asarray(num_matrix).reshape(self.rows*self.cols),swap_matrix.T)
+                                #num_matrix = num_matrix_tmp.reshape((self.rows,self.cols)).tolist()
+                                #for i in range(len(num_matrix)): 
+                                #    num_matrix[i] = list(map(int,num_matrix[i]))
+
+                                for j in range(1,self.cols+1):
+                                    for i in range(1,self.rows+1):
+                                        pygame.draw.circle(surface,dict.get(render_list[index-1][i-1][j-1]),((X_START*j),(Y_START*i)),15)
+                                        surface.blit(num_dict.get(num_matrix[i-1][j-1]),((X_START*j)-5,(Y_START*i)-5))
+                                tuple_list = self.action_render(swap_matrix)
+                            
+                                num_matrix = np.matmul(np.asarray(num_matrix).reshape(self.rows*self.cols),swap_matrix.T).reshape((self.rows,self.cols)).tolist()
+                                for i in range(len(num_matrix)): 
+                                    num_matrix[i] = list(map(int,num_matrix[i]))
+
+                                for t in tuple_list:
+                                    r0 = math.floor(t[0]/self.cols)
+                                    c0 = t[0]%self.cols
+                                    r1 = math.floor(t[1]/self.cols)
+                                    c1 = t[1]%self.cols
+                                    x0 = X_START*(c0+1)
+                                    y0 = Y_START*(r0+1)
+                                    x1 = X_START*(c1+1)
+                                    y1 = Y_START*(r1+1)
+                                    x = x1+((x0-x1)/2)
+                                    y = y1+((y0-y1)/2)
+                                    pygame.draw.rect(surface,CYAN,pygame.Rect((x-10,y-10),(20,20)))
+                                    surface.blit(s_img,(x-6,y-8))
                            
-                        self.screen.blit(surface,(0,0))
-                        pygame.display.flip()
-
-
+                            self.screen.blit(surface,(0,0))
+                            pygame.display.flip()
 
         self.screen.blit(surface,(0,0))
 
