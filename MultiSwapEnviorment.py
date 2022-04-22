@@ -225,9 +225,9 @@ class swap_enviorment(Env):
                                     num_matrix[i] = list(map(int,num_matrix[i]))
 
                                 for t in tuple_list:
-                                    r0 = math.floor(t[0]/self.cols)
+                                    r0 = t[0]//self.cols
                                     c0 = t[0]%self.cols
-                                    r1 = math.floor(t[1]/self.cols)
+                                    r1 = t[1]//self.cols
                                     c1 = t[1]%self.cols
                                     x0 = X_START*(c0+1)
                                     y0 = Y_START*(r0+1)
@@ -276,9 +276,9 @@ class swap_enviorment(Env):
                                     num_matrix[i] = list(map(int,num_matrix[i]))
 
                                 for t in tuple_list:
-                                    r0 = math.floor(t[0]/self.cols)
+                                    r0 = t[0]//self.cols
                                     c0 = t[0]%self.cols
-                                    r1 = math.floor(t[1]/self.cols)
+                                    r1 = t[1]//self.cols
                                     c1 = t[1]%self.cols
                                     x0 = X_START*(c0+1)
                                     y0 = Y_START*(r0+1)
