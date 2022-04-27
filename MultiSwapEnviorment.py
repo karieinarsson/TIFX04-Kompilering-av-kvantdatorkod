@@ -7,6 +7,7 @@ import copy
 from stable_baselines3.common.env_checker import check_env
 import pygame
 import math
+from itertools import compress
 # types
 Matrix = List[List[int]]
 Action = List[int]
@@ -34,30 +35,28 @@ def main():
 #Our enviorment
 class swap_enviorment(Env):
     def __init__(self, depth_of_code: int, rows: int, cols: int, 
-                 max_swaps_per_time_step: int=-1, used: List[int]=None) -> None:
+            max_swaps_per_time_step: int = -1, max_episode_steps = 200) -> None:
         self.depth_of_code = depth_of_code
         self.rows = rows
         self.cols = cols
-        if used is None:
-            used = []
-        self.used = used
-        if max_swaps_per_time_step < 0 or max_swaps_per_time_step > np.floor(self.rows*self.cols/2):
+        if max_swaps_per_time_step < 0:
             self.max_swaps_per_time_step = np.floor(self.rows * self.cols/2)
-        else: 
+        else:
             self.max_swaps_per_time_step = max_swaps_per_time_step
-        self.max_layers = depth_of_code + 10
-        self.max_episode_steps = 200
+        self.max_episode_steps = max_episode_steps
         #array of possible actions
         self.possible_actions = self.get_possible_actions()
         #Number of actions we can take
         self.action_space = Discrete(len(self.possible_actions))
         self.observation_space = Box(low=0, high=np.floor(self.rows * self.cols / 2),
                                 shape=(1, depth_of_code, rows, cols, ), dtype=np.uint8)
-        #The start state
-        self.state = self.make_state()
+        
         #max amount of layers per episode
         self.max_layers = self.depth_of_code
-        
+        #The start state
+        self.code = self.make_code()
+        self.state, self.code = self.code[:self.depth_of_code], self.code[self.depth_of_code:]
+
         #pygame screen initialization
         self.screen = None
         self.isopen = True
@@ -71,10 +70,13 @@ class swap_enviorment(Env):
         reward = self.reward_func(self.state)
 
         if reward == -1:
-            if action == 0: reward = 0
+            if action in self.get_parallell_actions(self.state): 
+                reward = 0
             # remove the exicutable slice and add a new random slice at the tail
+            self.state[0], self.code = self.code[:1], self.code[1:]
+
             self.state = np.roll(self.state, -1, axis=0)
-            self.state[self.depth_of_code - 1] = self.make_state_slice()
+            
             # we are not done except if this was the last layer we can work on this episode
             self.max_layers -= 1
         if self.max_episode_steps <= 0 or self.max_layers <= 0:
@@ -199,7 +201,6 @@ class swap_enviorment(Env):
                                     pygame.draw.circle(surface,dict.get(render_list[index-1][i-1][j-1]),((X_START*j),(Y_START*i)),15)
                             swap_matrix = self.possible_actions[render_list[index]]
                             tuple_list = self.action_render(swap_matrix)
-
                             for t in tuple_list:
                                 r0 = math.floor(t[0]/self.cols)
                                 c0 = t[0]%self.cols
@@ -267,9 +268,19 @@ class swap_enviorment(Env):
         pygame.display.flip()
         return self.isopen
 
-    def reset(self) -> List[int]:
-        self.state = self.make_state()
+    def reset(self, code = None) -> List[int]:
         self.max_layers = self.depth_of_code
+        if code is None:
+            self.code = self.squash(self.make_code().reshape((self.depth_of_code, self.rows * self.cols)))
+        else:
+            self.code = self.squash(code.reshape((self.depth_of_code, self.rows * self.cols)))
+
+        self.code = np.pad(self.code, ((0,self.depth_of_code),(0,0)))
+
+        self.state, self.code = self.code[:self.depth_of_code], self.code[self.depth_of_code:]
+
+        self.state = self.state.reshape((self.depth_of_code, self.rows, self.cols))
+
         self.max_episode_steps = 200
         return self.state
 
@@ -307,7 +318,7 @@ class swap_enviorment(Env):
                         and not m[pos+i] in used
                         and not (pos%self.rows == 0 and i == -1) 
                         and not (pos%self.rows == self.rows-1 and i == 1) else -1 
-                        for i in [1, -1, self.rows, -self.rows]]
+                        for i in [1, -1, self.cols, -self.cols]]
                 for target in neighbors:
                     if target != -1:
                         a = [pos, target]
@@ -360,8 +371,8 @@ class swap_enviorment(Env):
         return state_slice
 
     # Makes a state out of depth_of_code amount of slices
-    def make_state(self) -> List[int]:
-        state = np.zeros((self.depth_of_code, self.rows, self.cols))
+    def make_code(self) -> List[int]:
+        state = np.zeros((self.max_layers, self.rows, self.cols))
         for i in range(len(state)):
             state[i] = self.make_state_slice().reshape((self.rows, self.cols))
         return state
@@ -370,6 +381,54 @@ class swap_enviorment(Env):
         if self.is_executable_state(state):
             return -1
         return -2
+
+    def get_parallell_actions(self, state) -> List[Matrix]:
+        used_matrix = np.zeros(self.possible_actions.shape)
+        used = np.where(state[0]>0)[0]
+        for i in used:
+            used_matrix[:,i,i] = 1
+        
+        tmp = np.sum(np.bitwise_and(used_matrix.astype(int), self.possible_actions.astype(int)), axis=(1,2)) == len(used)
+
+        parallell_actions = np.array([i for i, v in enumerate(tmp) if v])
+
+        return parallell_actions
+    
+    def squash(self, swap_matrix, preprocessing = True):
+        gates = []
+        for idx, m in enumerate(swap_matrix):
+            used = []
+            for v in m:
+                if v != 0 and v not in used:
+                    used.append(v)
+                    gates.append((v/abs(v), np.array([i for i, x in enumerate(m) if x == v])))
+        
+        return_state = []
+        c_gate = 0
+        swap_gate = 0
+        layer = np.zeros(self.rows*self.cols)
+        for v, x in gates:
+            if layer[x[0]] != 0 or layer[x[1]] != 0:
+                return_state.append(layer)
+                layer = np.zeros(self.rows*self.cols)
+                c_gate = 0
+                swap_gate = 0
+            if v < 0:
+                swap_gate -= 1
+                layer[x[0]] = swap_gate
+                layer[x[1]] = swap_gate
+            else:
+                c_gate += 1
+                layer[x[0]] = c_gate
+                layer[x[1]] = c_gate
+            
+        return_state.append(layer)
+
+        return_state = np.array(return_state)
+
+        if preprocessing:
+            return_state = np.pad(return_state, ((0,self.depth_of_code-return_state.shape[0]),(0,0)))
+        return return_state
 
 if __name__ == '__main__':
     main()

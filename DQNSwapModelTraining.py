@@ -20,9 +20,9 @@ from dqn.swap_vec_env import SwapVecEnv
 from dqn.dqn import DQN
 
 #env variables
-depth_of_code = 5
-rows = 3
-cols = 3
+depth_of_code = 10
+rows = 2
+cols = 2
 max_swaps_per_time_step = -1
 
 #model variables (previously 2e4)
@@ -32,14 +32,14 @@ exploration_fraction = 0.5
 exploration_initial_eps = 1
 exploration_final_eps = 0.1
 batch_size = 512
-learning_rate = 0.0005
+learning_rate = 0.001
 target_update_interval = int(1e4)
 tau = 0.5
 gamma = 0.5
 train_freq = 4
 
 #training variables (previously 1e5)
-total_timesteps = int(1e7)
+total_timesteps = int(1e6)
 log_interval = 4
 
 #evaluation
@@ -52,8 +52,8 @@ register(
     max_episode_steps=200,
 )
 
-venv = make_vec_env("MultiSwapEnviorment-v0", n_envs = 7, env_kwargs = {"depth_of_code": depth_of_code, "rows": rows, "cols": cols, "max_swaps_per_time_step": max_swaps_per_time_step})
-env = swap_enviorment(depth_of_code, rows, cols, max_swaps_per_time_step)
+venv = make_vec_env("MultiSwapEnviorment-v0", n_envs = 20, env_kwargs = {"depth_of_code": depth_of_code, "rows": rows, "cols": cols})
+env = swap_enviorment(depth_of_code, rows, cols)
 
 eval_callback = EvalCallback(
         env, 
@@ -68,7 +68,7 @@ eval_callback = EvalCallback(
 
 # Defining agent name
 model_dir = "models/"
-model_name = "DQNModel(StateToValue)"
+model_name = f"DQNModel({depth_of_code},{rows},{cols})"
 logdir="logdir/"
 
 # Intantiate the agent
