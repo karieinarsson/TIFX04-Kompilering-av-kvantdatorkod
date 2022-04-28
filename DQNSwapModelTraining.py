@@ -39,7 +39,7 @@ gamma = 0.5
 train_freq = 4
 
 #training variables (previously 1e5)
-total_timesteps = int(1e7)
+total_timesteps = int(1e5)
 log_interval = 4
 
 #evaluation
@@ -68,7 +68,7 @@ eval_callback = EvalCallback(
 
 # Defining agent name
 model_dir = "models/"
-model_name = "DQNModel(StateToValue)"
+model_name = "DQNModel(StateToValue)_rendertest"
 logdir="logdir/"
 
 # Intantiate the agent

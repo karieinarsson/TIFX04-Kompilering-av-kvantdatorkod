@@ -158,9 +158,9 @@ class swap_enviorment(Env):
         for j in range(1,self.cols+1):
             for i in range(1,self.rows+1):
                 pygame.draw.circle(surface,BLACK,((X_START*j),(Y_START*i)),20)
-                if j < self.rows:
+                if j < self.cols:
                     pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*(j+1)),((Y_START*i))),4)
-                if i < self.cols: 
+                if i < self.rows: 
                     pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*j),((Y_START*(i+1)))),4)
                 pygame.draw.circle(surface,dict.get(render_list[0][i-1][j-1]),((X_START*j),(Y_START*i)),15)
                 surface.blit(num_dict.get(num_matrix[i-1][j-1]),((X_START*j)-5,(Y_START*i)-5))
@@ -185,11 +185,11 @@ class swap_enviorment(Env):
                         for j in range(1,self.cols+1):
                             for i in range(1,self.rows+1):
                                 pygame.draw.circle(surface,BLACK,((X_START*j),(Y_START*i)),20)
-                                if j < self.rows:
+                                if j < self.cols:
                                     pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*(j+1)),((Y_START*i))),4)
-                                if i < self.cols: 
+                                if i < self.rows: 
                                     pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*j),((Y_START*(i+1)))),4)
-                                    surface.blit(num_dict.get(num_matrix[i-1][j-1]),((X_START*j)-5,(Y_START*i)-5))
+                                surface.blit(num_dict.get(num_matrix[i-1][j-1]),((X_START*j)-5,(Y_START*i)-5))
 
                     if event.key == pygame.K_n:
                         #next one
@@ -211,9 +211,9 @@ class swap_enviorment(Env):
                                 for j in range(1,self.cols+1):
                                     for i in range(1,self.rows+1):
                                         pygame.draw.circle(surface,BLACK,((X_START*j),(Y_START*i)),20)
-                                        if j < self.rows:
+                                        if j < self.cols:
                                             pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*(j+1)),((Y_START*i))),4)
-                                        if i < self.cols: 
+                                        if i < self.rows: 
                                             pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*j),((Y_START*(i+1)))),4)
                                         pygame.draw.circle(surface,dict.get(render_list[index][i-1][j-1]),((X_START*j),(Y_START*i)),15)
                                         surface.blit(num_dict.get(num_matrix[i-1][j-1]),((X_START*j)-5,(Y_START*i)-5))
@@ -261,9 +261,9 @@ class swap_enviorment(Env):
                                 for j in range(1,self.cols+1):
                                     for i in range(1,self.rows+1):
                                         pygame.draw.circle(surface,BLACK,((X_START*j),(Y_START*i)),20)
-                                        if j < self.rows:
+                                        if j < self.cols:
                                             pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*(j+1)),((Y_START*i))),4)
-                                        if i < self.cols: 
+                                        if i < self.rows: 
                                             pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*j),((Y_START*(i+1)))),4)
                                         pygame.draw.circle(surface,dict.get(render_list[index][i-1][j-1]),((X_START*j),(Y_START*i)),15)
                                         surface.blit(num_dict.get(num_matrix[i-1][j-1]),((X_START*j)-5,(Y_START*i)-5))
