@@ -8,6 +8,7 @@ from stable_baselines3.common.env_checker import check_env
 import pygame
 import math
 from itertools import compress
+
 # types
 Matrix = List[List[int]]
 
@@ -77,7 +78,7 @@ class swap_enviorment(Env):
         # Rewards
         reward = self.reward_func(self.state, action)
 
-        if reward <= -1:
+        if reward >= -1:
             # remove the executed slice and add a new slice from code at the end 
             self.state[0], self.code = self.code[:1], self.code[1:]
             self.state = np.roll(self.state, -1, axis=0)
@@ -412,7 +413,7 @@ class swap_enviorment(Env):
         Output: The immediate reward
         """
         if self.is_executable_state(state):
-            if action in self.get_parallell_actions(self.state):
+            if action in self.get_parallell_actions(state):
                 return 0
             return -1
         return -2

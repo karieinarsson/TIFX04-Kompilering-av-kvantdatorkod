@@ -226,7 +226,7 @@ class DQNPolicy(BasePolicy):
                 value = self._predict(tensor_obs, deterministic=deterministic)
                 
             for i, o in enumerate(new_obs):
-                value[i] += env.envs[0].reward_func(o, possible_actions[i])
+                value[i] += env.envs[0].reward_func(o, i)
             
             actions[idx] = np.argmax(value)
         
