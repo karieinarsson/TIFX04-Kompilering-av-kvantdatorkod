@@ -489,12 +489,12 @@ class swap_enviorment(Env):
         action_matrix = action_matrix.tolist()
         action_tuples = [] 
         used_nodes = [] 
-            for i in range(len(action_matrix)): 
-                if i not in used_nodes: 
-                    idx = action_matrix[i].index(1) 
-                    used_nodes.append(idx)
-                    if idx != i:
-                        action_tuples.append(tuple((i,idx)))
+        for i in range(len(action_matrix)): 
+            if i not in used_nodes: 
+                idx = action_matrix[i].index(1) 
+                used_nodes.append(idx)
+                if idx != i:
+                    action_tuples.append(tuple((i,idx)))
         return action_tuples
 
 if __name__ == '__main__':
