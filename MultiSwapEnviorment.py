@@ -65,7 +65,6 @@ class swap_enviorment(Env):
         
         #pygame screen initialization
         self.screen = None
-        self.isopen = True
     
     def step(self, action: Discrete) -> Tuple[List[int], int, bool, 'info']:
         self.state = self.state.reshape((self.depth_of_code, self.rows*self.cols))
@@ -171,8 +170,6 @@ class swap_enviorment(Env):
 
         index = 0
         running = True
-        swap_matrix = self.possible_actions[0]
-        print(render_list)
 
         while running:
             ev = pygame.event.get()
@@ -183,7 +180,7 @@ class swap_enviorment(Env):
                     running = False
 
                 if event.type == pygame.KEYDOWN:
-                    if index%2 == 0:                    
+                    if type(render_list[index]) is list:                    
                         pygame.draw.rect(surface,WHITE,surface.get_rect())
                         for j in range(1,self.cols+1):
                             for i in range(1,self.rows+1):
@@ -200,7 +197,12 @@ class swap_enviorment(Env):
                             print("At last obs")
                         else:
                             index += 1
-                        
+                            print(type(render_list[index-1]))
+                            if type(render_list[index-1]) is np.int64:
+                                num_matrix = np.asarray(num_matrix).reshape(self.rows*self.cols)
+                                num_matrix = np.matmul(self.possible_actions[render_list[index-1]],num_matrix).reshape((self.rows,self.cols)).tolist()
+                                for i in range(len(num_matrix)):
+                                    num_matrix[i] = list(map(int,num_matrix[i]))
 
                             if type(render_list[index]) is list:
                                 pygame.draw.rect(surface,WHITE,surface.get_rect())
@@ -215,13 +217,7 @@ class swap_enviorment(Env):
                                             pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*j),((Y_START*(i+1)))),4)
                                         pygame.draw.circle(surface,dict.get(render_list[index][i-1][j-1]),((X_START*j),(Y_START*i)),15)
                                         surface.blit(num_dict.get(num_matrix[i-1][j-1]),((X_START*j)-5,(Y_START*i)-5))
-
-                                
-                                
-                                print(num_matrix)
-                       
                             else:
-                                swap_matrix = self.possible_actions[render_list[index]]
                                 #num_matrix_tmp = np.matmul(np.asarray(num_matrix).reshape(self.rows*self.cols),swap_matrix.T)
                                 #num_matrix = num_matrix_tmp.reshape((self.rows,self.cols)).tolist()
                                 #for i in range(len(num_matrix)): 
@@ -231,12 +227,8 @@ class swap_enviorment(Env):
                                     for i in range(1,self.rows+1):
                                         pygame.draw.circle(surface,dict.get(render_list[index-1][i-1][j-1]),((X_START*j),(Y_START*i)),15)
                                         surface.blit(num_dict.get(num_matrix[i-1][j-1]),((X_START*j)-5,(Y_START*i)-5))
-                                tuple_list = self.action_render(swap_matrix)
+                                tuple_list = self.action_render(self.possible_actions[render_list[index]])
                                    
-                                num_matrix = np.matmul(swap_matrix,np.asarray(num_matrix).reshape(self.rows*self.cols)).reshape((self.rows,self.cols)).tolist()
-                                for i in range(len(num_matrix)): 
-                                    num_matrix[i] = list(map(int,num_matrix[i]))
-
                                 for t in tuple_list:
                                     r0 = math.floor(t[0]/self.cols)
                                     c0 = t[0]%self.cols
@@ -261,6 +253,7 @@ class swap_enviorment(Env):
                             print("At first obs")
                         else:    
                             index -= 1
+
                         
                             if type(render_list[index]) is list:
                                 pygame.draw.rect(surface,WHITE,surface.get_rect())
@@ -274,25 +267,24 @@ class swap_enviorment(Env):
                                             pygame.draw.line(surface,BLACK,((X_START*j),(Y_START*i)),((X_START*j),((Y_START*(i+1)))),4)
                                         pygame.draw.circle(surface,dict.get(render_list[index][i-1][j-1]),((X_START*j),(Y_START*i)),15)
                                         surface.blit(num_dict.get(num_matrix[i-1][j-1]),((X_START*j)-5,(Y_START*i)-5))
-                                 
-                                print(num_matrix)
                             else: 
-                                swap_matrix = self.possible_actions[render_list[index]]
                                 #num_matrix_tmp = np.matmul(np.asarray(num_matrix).reshape(self.rows*self.cols),swap_matrix.T)
                                 #num_matrix = num_matrix_tmp.reshape((self.rows,self.cols)).tolist()
                                 #for i in range(len(num_matrix)): 
                                 #    num_matrix[i] = list(map(int,num_matrix[i]))
+                                
+                                num_matrix = np.asarray(num_matrix).reshape(self.rows*self.cols)
+                                num_matrix = np.matmul(self.possible_actions[render_list[index]],num_matrix).reshape((self.rows,self.cols)).tolist()
+                                for i in range(len(num_matrix)):
+                                    num_matrix[i] = list(map(int,num_matrix[i]))
+
 
                                 for j in range(1,self.cols+1):
                                     for i in range(1,self.rows+1):
                                         pygame.draw.circle(surface,dict.get(render_list[index-1][i-1][j-1]),((X_START*j),(Y_START*i)),15)
                                         surface.blit(num_dict.get(num_matrix[i-1][j-1]),((X_START*j)-5,(Y_START*i)-5))
-                                tuple_list = self.action_render(swap_matrix)
+                                tuple_list = self.action_render(self.possible_actions[render_list[index]])
                             
-                                num_matrix = np.matmul(np.asarray(num_matrix).reshape(self.rows*self.cols),swap_matrix.T).reshape((self.rows,self.cols)).tolist()
-                                for i in range(len(num_matrix)): 
-                                    num_matrix[i] = list(map(int,num_matrix[i]))
-
                                 for t in tuple_list:
                                     r0 = math.floor(t[0]/self.cols)
                                     c0 = t[0]%self.cols
@@ -314,7 +306,6 @@ class swap_enviorment(Env):
 
         pygame.event.pump()
         pygame.display.flip()
-        return self.isopen
 
     def reset(self) -> List[int]:
         self.state = self.make_state()
