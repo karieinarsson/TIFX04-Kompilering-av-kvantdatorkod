@@ -20,7 +20,7 @@ from dqn.swap_vec_env import SwapVecEnv
 from dqn.dqn import DQN
 
 #env variables
-depth_of_code = 10
+depth = 10
 rows = 2
 cols = 2
 max_swaps_per_time_step = -1
@@ -52,8 +52,8 @@ register(
     max_episode_steps=200,
 )
 
-venv = make_vec_env("MultiSwapEnviorment-v0", n_envs = 20, env_kwargs = {"depth_of_code": depth_of_code, "rows": rows, "cols": cols})
-env = swap_enviorment(depth_of_code, rows, cols)
+venv = make_vec_env("MultiSwapEnviorment-v0", n_envs = 20, env_kwargs = {"depth": depth, "rows": rows, "cols": cols})
+env = swap_enviorment(depth, rows, cols)
 
 eval_callback = EvalCallback(
         env, 
@@ -68,7 +68,7 @@ eval_callback = EvalCallback(
 
 # Defining agent name
 model_dir = "models/"
-model_name = f"DQNModel({depth_of_code},{rows},{cols})"
+model_name = f"DQNModel({depth},{rows},{cols})"
 logdir="logdir/"
 
 # Intantiate the agent
@@ -126,7 +126,7 @@ write_text.write(
     "\r\n"+
     
     "Environment Variables \r\n"+
-    f"depth_of_code = {depth_of_code}\r\n"+
+    f"depth = {depth}\r\n"+
     f"rows = {rows}\r\n"+
     f"cols = {cols}\r\n"+
     f"max_swaps_per_time_step = {max_swaps_per_time_step}\r\n"+

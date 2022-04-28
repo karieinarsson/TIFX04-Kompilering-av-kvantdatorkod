@@ -10,7 +10,13 @@ import math
 from itertools import compress
 # types
 Matrix = List[List[int]]
-Action = List[int]
+
+TimestepLayer = List[List[int]]
+FlattenedTimeStepLayer = List[int]
+State = List[TimestepLayer]
+FlattenedState = List[FlattenedTimeStepLayer]
+
+PermutationMatrix = List[List[int]]
 
 #pygame constants
 PG_WIDTH  = 100
@@ -39,63 +45,53 @@ def main():
 
 #Our enviorment
 class swap_enviorment(Env):
-    def __init__(self, depth_of_code: int, rows: int, cols: int, 
-            max_swaps_per_time_step: int = -1, max_episode_steps = 200) -> None:
-        self.depth_of_code = depth_of_code
+    def __init__(self, depth: int, rows: int, cols: int, 
+            max_swaps_per_timestep: int = -1, timeout: int = 200) -> None:
+        self.depth = depth
         self.rows = rows
         self.cols = cols
-        if max_swaps_per_time_step < 0:
+        if max_swaps_per_timestep < 0 or max_swaps_per_timestep > np.floor(self.rows * self.cols/2):
             self.max_swaps_per_time_step = np.floor(self.rows * self.cols/2)
         else:
             self.max_swaps_per_time_step = max_swaps_per_time_step
-        self.max_episode_steps = max_episode_steps
+        self.timeout = timeout
         #array of possible actions
         self.possible_actions = self.get_possible_actions()
         #Number of actions we can take
         self.action_space = Discrete(len(self.possible_actions))
         self.observation_space = Box(low=0, high=np.floor(self.rows * self.cols / 2),
-                                shape=(1, depth_of_code, rows, cols, ), dtype=np.uint8)
+                                shape=(1, depth, rows, cols, ), dtype=np.uint8)
         
-        #max amount of layers per episode
-        self.max_layers = self.depth_of_code
-        #The start state
-        self.code = self.make_code()
-        self.state, self.code = self.code[:self.depth_of_code], self.code[self.depth_of_code:]
+        #reset enviorment
+        self.reset()
 
         #pygame screen initialization
         self.screen = None
         self.isopen = True
     
-    def step(self, action: Discrete) -> Tuple[List[int], int, bool, 'info']:
-        self.state = self.state.reshape((self.depth_of_code, self.rows*self.cols))
+    def step(self, action: int) -> Tuple[List[int], int, bool, 'info']:
+        self.state = self.state.reshape((self.depth, self.rows*self.cols))
         self.max_episode_steps -= 1
         swap_matrix = self.possible_actions[action]
         self.state = np.matmul(self.state, swap_matrix)
         # Rewards
-        reward = self.reward_func(self.state)
+        reward = self.reward_func(self.state, action)
 
-        if reward == -1:
-            if action in self.get_parallell_actions(self.state): 
-                reward = 0
-            # remove the exicutable slice and add a new random slice at the tail
+        if reward <= -1:
+            # remove the executed slice and add a new slice from code at the end 
             self.state[0], self.code = self.code[:1], self.code[1:]
-
             self.state = np.roll(self.state, -1, axis=0)
-            
-            # we are not done except if this was the last layer we can work on this episode
             self.max_layers -= 1
         if self.max_episode_steps <= 0 or self.max_layers <= 0:
             done = True
         else:
             done = False
-
+        
         info = {}
-
-
-        self.state = self.state.reshape((self.depth_of_code, self.rows, self.cols))
+        self.state = self.state.reshape((self.depth, self.rows, self.cols))
         return self.state, reward, done, info
 
-    def render(self, mode = "human", render_list = None): 
+    def render(self, mode = "human", render_list = None) -> bool: 
         if render_list is None:
             return 
         if self.screen is None:
@@ -299,29 +295,27 @@ class swap_enviorment(Env):
         pygame.display.flip()
         return self.isopen
 
-    def reset(self, code = None) -> List[int]:
-        self.max_layers = self.depth_of_code
+    def reset(self, code: State = None) -> State:
+        self.max_layers = self.depth
         if code is None:
-            self.code = self.squash(self.make_code().reshape((self.depth_of_code, self.rows * self.cols)))
+            self.code = self.processing(self.make_code().reshape((self.depth, self.rows * self.cols)), preprocessing = True)
         else:
-            self.code = self.squash(code.reshape((self.depth_of_code, self.rows * self.cols)))
+            self.code = self.processing(code.reshape((self.depth, self.rows * self.cols)), preprocessing = True)
 
-        self.code = np.pad(self.code, ((0,self.depth_of_code),(0,0)))
+        self.code = np.pad(self.code, ((0,self.depth),(0,0)))
+        self.state, self.code = self.code[:self.depth], self.code[self.depth:]
+        self.state = self.state.reshape((self.depth, self.rows, self.cols))
 
-        self.state, self.code = self.code[:self.depth_of_code], self.code[self.depth_of_code:]
-
-        self.state = self.state.reshape((self.depth_of_code, self.rows, self.cols))
-
-        self.max_episode_steps = 200
+        self.max_episode_steps = self.timeout
         return self.state
 
-#                                             [[1,0,0], [[1,0,0],   [[1,0,0],         [[1,0,0],  
-# is_exicutable_state takes in a state like [  [1,0,2],  [1,0,2], ,  [1,0,2], , ... ,  [1,0,2], ]  
-#                                              [2,0,0]]  [2,0,0]]    [2,0,0]]          [2,0,0]] 
-# and checks if all the pairs of numbers in the first slice are neighbors and 
-#if so returns True else returns False
-
-    def is_executable_state(self, state) -> bool:
+    def is_executable_state(self, state: State) -> bool:
+        """
+        Input: 
+            - state: A flattened state of gates
+        
+        Output: Bool which is True if all gates are executable in the first timestep
+        """
         for pos in range(self.rows * self.cols):
             gate = state[0][pos]
             if gate > 0:
@@ -332,13 +326,19 @@ class swap_enviorment(Env):
                 if not gate in neighbors:
                     return False
         return True
-
-# We use this once to get all the different swap combinations. I.e. all acceptable combinations of one to four
-# swaps. This are the different actions we cound make in one timestep.
     
-    def get_possible_actions(self, iterations = None, used = None):
+    def get_possible_actions(self, iterations: int = None, used: List[int] = None) -> List[PermutationMatrix]:
+        """
+        Input: 
+            - iterations: The current iteration of the recurtion
+            - used: What qubits have been used for gates
+
+        Output: List of permutation matrices corresponding to all possible actions
+                for the current size of quantum circuit
+        """
         if used is None:
             used = []
+
         if iterations is None or iterations == -1:
             iterations = self.max_swaps_per_time_step
         m = np.arange(self.rows*self.cols)
@@ -382,17 +382,10 @@ class swap_enviorment(Env):
         
         return possible_actions
 
-# Creates a shuffled Matrix simulating a slice of quantum code with one to max amount 
-# of operations per timestep
-
-# Ex1. [[0, 1, 0],
-#       [1, 2, 2],
-#       [3, 0, 3]]
-
-# Ex2. [[2, 1],
-#       [2, 1]]
-
-    def make_state_slice(self):
+    def make_state_slice(self) -> FlattenedTimeStepLayer:
+        """
+        Output: Flattened timestep layer of random gates
+        """
         max_gates = math.floor(self.rows*self.cols/2)
         state_slice = np.zeros(self.rows*self.cols)
         for i in range(1, np.random.choice(range(2, max_gates+2))):
@@ -401,19 +394,37 @@ class swap_enviorment(Env):
         np.random.shuffle(state_slice)
         return state_slice
 
-    # Makes a state out of depth_of_code amount of slices
-    def make_code(self) -> List[int]:
+    def make_code(self) -> State:
+        """
+        Output: State composed of random timestep layers with random gates
+        """
         state = np.zeros((self.max_layers, self.rows, self.cols))
         for i in range(len(state)):
             state[i] = self.make_state_slice().reshape((self.rows, self.cols))
         return state
 
-    def reward_func(self, state) -> int:
+    def reward_func(self, state: FlattenedState, action: int) -> int:
+        """
+        Input:
+            - state: A flattened state of gates
+            - action: Action
+
+        Output: The immediate reward
+        """
         if self.is_executable_state(state):
+            if action in self.get_parallell_actions(self.state):
+                return 0
             return -1
         return -2
 
-    def get_parallell_actions(self, state) -> List[Matrix]:
+    def get_parallell_actions(self, state: State) -> List[int]:
+        """
+        Input:
+            - state: A flattened state of gates
+
+        Output: List of actions that do not affect any gates in the first timestep
+                of the state
+        """
         used_matrix = np.zeros(self.possible_actions.shape)
         used = np.where(state[0]>0)[0]
         for i in used:
@@ -425,9 +436,16 @@ class swap_enviorment(Env):
 
         return parallell_actions
     
-    def squash(self, swap_matrix, preprocessing = True):
+    def processing(self, state: State, preprocessing: bool = True) -> State:
+        """
+        Input:
+            - state: A flattened state of gates
+            - preprocessing: bool that tells if this is used as preprocessing or postprocessing
+        
+        Output: Flattened compressed state
+        """
         gates = []
-        for idx, m in enumerate(swap_matrix):
+        for idx, m in enumerate(state):
             used = []
             for v in m:
                 if v != 0 and v not in used:
@@ -458,20 +476,26 @@ class swap_enviorment(Env):
         return_state = np.array(return_state)
 
         if preprocessing:
-            return_state = np.pad(return_state, ((0,self.depth_of_code-return_state.shape[0]),(0,0)))
+            return_state = np.pad(return_state, ((0,self.depth-return_state.shape[0]),(0,0)))
         return return_state
 
-    def action_render(self,action_matrix):                                                                                                                                                
-         action_matrix = action_matrix.tolist()
-         action_tuples = [] 
-         used_nodes = [] 
-         for i in range(len(action_matrix)): 
-             if i not in used_nodes: 
-                 idx = action_matrix[i].index(1) 
-                 used_nodes.append(idx)
-                 if idx != i:
-                     action_tuples.append(tuple((i,idx)))
-         return action_tuples
+    def action_render(self, action_matrix: PermutationMatrix) -> List[Tuple[int, int]]:
+        """
+        Input:
+            - action_matrix: PermutationMatrix corresponding to an action
+
+        Output: List of tuples of ints describing between what qubits SWAP-gates are placed
+        """
+        action_matrix = action_matrix.tolist()
+        action_tuples = [] 
+        used_nodes = [] 
+            for i in range(len(action_matrix)): 
+                if i not in used_nodes: 
+                    idx = action_matrix[i].index(1) 
+                    used_nodes.append(idx)
+                    if idx != i:
+                        action_tuples.append(tuple((i,idx)))
+        return action_tuples
 
 if __name__ == '__main__':
     main()
