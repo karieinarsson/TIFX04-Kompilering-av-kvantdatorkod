@@ -19,6 +19,8 @@ from dqn.evaluation import evaluate_policy
 from dqn.swap_vec_env import SwapVecEnv
 from dqn.dqn import DQN
 
+from gym.envs.registration import register
+
 #env variables
 depth = 10
 rows = 2
@@ -44,6 +46,14 @@ log_interval = 4
 
 #evaluation
 n_eval_episodes = 200
+
+register(
+    id="MultiSwapEnviorment-v0",
+    entry_point="MultiSwapEnviorment:swap_enviorment",
+    max_episode_steps=200,
+)
+
+venv = make_vec_env("MultiSwapEnviorment-v0", n_envs = 7, env_kwargs = {"depth_of_code": depth_of_code, "rows": rows, "cols": cols, "max_swaps_per_time_step": max_swaps_per_time_step})
 
 
 register(
