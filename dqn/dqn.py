@@ -7,10 +7,6 @@ import numpy as np
 import torch as th
 from torch.nn import functional as F
 
-from dqn.buffers import ReplayBuffer
-from dqn.policies import DQNPolicy
-from dqn.evaluation import evaluate_policy
-
 from stable_baselines3.common.off_policy_algorithm import OffPolicyAlgorithm
 from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.noise import ActionNoise, VectorizedActionNoise
@@ -20,7 +16,13 @@ from stable_baselines3.common.type_aliases import GymEnv, MaybeCallback, Rollout
 from stable_baselines3.common.utils import get_linear_fn, is_vectorized_observation, polyak_update, safe_mean, should_collect_more_steps
 from stable_baselines3.her.her_replay_buffer import HerReplayBuffer
 
-class DQN(OffPolicyAlgorithm):
+from dqn.buffers import CustomReplayBuffer as ReplayBuffer
+from dqn.policies import CustomCnnPolicy
+from dqn.evaluation import evaluate_policy
+
+
+
+class CustomDQN(OffPolicyAlgorithm):
     """
     Deep Q-Network (DQN)
 
@@ -67,7 +69,7 @@ class DQN(OffPolicyAlgorithm):
 
     def __init__(
         self,
-        policy: Union[str, Type[DQNPolicy]],
+        policy: Union[str, Type[CustomCnnPolicy]],
         env: Union[GymEnv, str],
         learning_rate: Union[float, Schedule] = 1e-4,
         buffer_size: int = 1_000_000,  # 1e6
@@ -94,10 +96,10 @@ class DQN(OffPolicyAlgorithm):
         _init_setup_model: bool = True,
     ):
 
-        super(DQN, self).__init__(
+        super(CustomDQN, self).__init__(
             policy,
             env,
-            DQNPolicy,
+            CustomCnnPolicy,
             learning_rate,
             buffer_size,
             learning_starts,
@@ -344,7 +346,7 @@ class DQN(OffPolicyAlgorithm):
         return self
 
     def _excluded_save_params(self) -> List[str]:
-        return super(DQN, self)._excluded_save_params() + ["q_net", "q_net_target"]
+        return super(CustomDQN, self)._excluded_save_params() + ["q_net", "q_net_target"]
 
     def _get_torch_save_params(self) -> Tuple[List[str], List[str]]:
         state_dicts = ["policy", "policy.optimizer"]

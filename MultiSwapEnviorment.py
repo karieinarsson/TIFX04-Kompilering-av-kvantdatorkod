@@ -412,13 +412,14 @@ class swap_enviorment(Env):
 
         Output: The immediate reward
         """
+        parallell_actions, _ = self.get_parallell_actions(state)
         if self.is_executable_state(state):
-            if action in self.get_parallell_actions(state):
+            if action in parallell_actions:
                 return 0
             return -1
         return -2
 
-    def get_parallell_actions(self, state: State) -> List[int]:
+    def get_parallell_actions(self, state: State) -> Tuple[List[int], List[int]]:
         """
         Input:
             - state: A flattened state of gates
@@ -434,8 +435,9 @@ class swap_enviorment(Env):
         tmp = np.sum(np.bitwise_and(used_matrix.astype(int), self.possible_actions.astype(int)), axis=(1,2)) == len(used)
 
         parallell_actions = np.array([i for i, v in enumerate(tmp) if v])
+        non_parallell_actions = np.array([i for i, v in enumerate(tmp) if not v])
 
-        return parallell_actions
+        return parallell_actions, non_parallell_actions
     
     def processing(self, state: State, preprocessing: bool = True) -> State:
         """
