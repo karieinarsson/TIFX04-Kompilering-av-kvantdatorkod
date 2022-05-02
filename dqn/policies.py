@@ -17,8 +17,8 @@ from stable_baselines3.common.torch_layers import (
 from dqn.torch_layers import NatureCNN
 from stable_baselines3.common.type_aliases import Schedule
 
-CnnPolicy = DQNPolicy
-register_policy("CnnPolicy", DQNPolicy)
+#CNNCUSTOMPolicy = CnnPolicy
+register_policy("CNNCUSTOMPolicy", CNNCUSTOMPolicy)
 
 class QNetwork(BasePolicy):
     """
@@ -268,7 +268,7 @@ class DQNPolicy(BasePolicy):
 MlpPolicy = DQNPolicy
 
 
-class CnnPolicy(DQNPolicy):
+class CNNCUSTOMPolicy(DQNPolicy):
     """
     Policy class for DQN when using images as input.
 

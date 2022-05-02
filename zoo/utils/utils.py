@@ -7,8 +7,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 import sys
 sys.path.append('../')
 from dqn import DQNCustom
-from MultiSwapEnvironment import swap_environment
-
+from MultiSwap import MultiSwapEnvironment
 import gym
 import stable_baselines3 as sb3  # noqa: F401
 import torch as th  # noqa: F401
