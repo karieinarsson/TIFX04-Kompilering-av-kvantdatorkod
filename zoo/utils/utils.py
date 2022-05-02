@@ -7,8 +7,13 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 import sys
 sys.path.append('../')
 from dqn import DQNCustom
-from MultiSwap import MultiSwapEnvironment
 import gym
+from gym.envs.registration import register
+register(
+    id="MultiSwapEnviorment-v0",
+    entry_point="MultiSwap:swap_enviorment",
+    max_episode_steps=200,
+)
 import stable_baselines3 as sb3  # noqa: F401
 import torch as th  # noqa: F401
 import yaml

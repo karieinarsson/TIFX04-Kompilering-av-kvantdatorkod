@@ -81,7 +81,7 @@ Acrobot-v1:
 
 
 MultiSwapEnv-v0:
-  policy: 'MlpPolicy'
+  policy: 'CnnPolicy'
   learning_starts: 10000
   exploration_fraction: 0.5
   exploration_initial_eps: 1

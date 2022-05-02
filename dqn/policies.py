@@ -17,8 +17,6 @@ from stable_baselines3.common.torch_layers import (
 from dqn.torch_layers import NatureCNN
 from stable_baselines3.common.type_aliases import Schedule
 
-#CNNCUSTOMPolicy = CnnPolicy
-register_policy("CNNCUSTOMPolicy", CNNCUSTOMPolicy)
 
 class QNetwork(BasePolicy):
     """
@@ -312,7 +310,8 @@ class CNNCUSTOMPolicy(DQNPolicy):
             optimizer_kwargs,
         )
 
-
+CnnPolicy = CNNCUSTOMPolicy
+register_policy("CnnPolicy", CNNCUSTOMPolicy)
 class MultiInputPolicy(DQNPolicy):
     """
     Policy class for DQN when using dict observations as input.
@@ -358,6 +357,6 @@ class MultiInputPolicy(DQNPolicy):
         )
 
 
-register_policy("MlpPolicy", MlpPolicy)
-register_policy("CnnPolicy", CnnPolicy)
-register_policy("MultiInputPolicy", MultiInputPolicy)
+#register_policy("MlpPolicy", MlpPolicy)
+#register_policy("CnnPolicy", CnnPolicy)
+#register_policy("MultiInputPolicy", MultiInputPolicy)
