@@ -16,8 +16,10 @@ from stable_baselines3.common.env_util import make_vec_env
 
 from stable_baselines3.common.callbacks import EvalCallback
 from dqn.evaluation import evaluate_policy
+
+from dqn.policies import CustomCnnPolicy
 from dqn.swap_vec_env import SwapVecEnv
-from dqn.dqn import DQN
+from dqn.dqn import CustomDQN as DQN
 
 #env variables
 depth = 10
@@ -39,7 +41,7 @@ gamma = 0.5
 train_freq = 4
 
 #training variables (previously 1e5)
-total_timesteps = int(1e6)
+total_timesteps = int(2e5)
 log_interval = 4
 
 #evaluation
@@ -72,7 +74,7 @@ model_name = f"DQNModel({depth},{rows},{cols})"
 logdir="logdir/"
 
 # Intantiate the agent
-model = DQN('CnnPolicy', 
+model = DQN(CustomCnnPolicy, 
             venv, 
             verbose = verbose,
             train_freq = train_freq,

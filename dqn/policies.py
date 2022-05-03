@@ -97,18 +97,17 @@ class CustomCnnPolicy(DQNPolicy):
             
             if env.envs[0].is_executable_state(obs):
                 action_set = parallell_actions
+            
             else:
                 action_set = non_parallell_actions
                 
-            action = np.array([possible_actions[i] for i in action_set])
+            with th.no_grad(): 
+                action = th.Tensor([possible_actions[i] for i in action_set])
+                tensor_obs = th.Tensor(obs).reshape((10,4,))
+                tensor_obs = th.matmul(tensor_obs, action)
+                value = self._predict(tensor_obs.reshape((len(action),x,d,r,c)), deterministic=deterministic)
 
-            new_obs = np.matmul(obs, action)
-
-            with th.no_grad():
-                tensor_obs = th.from_numpy(new_obs.reshape((len(action),x,d,r,c)))
-                value = self._predict(tensor_obs, deterministic=deterministic)
-
-            for i, o in enumerate(new_obs):
+            for i, o in enumerate(np.array(tensor_obs)):
                 value[i] += env.envs[0].reward_func(o, i)
             
             actions[idx] = action_set[np.argmax(value)]

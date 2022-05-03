@@ -3,7 +3,7 @@ from typing import List, Tuple
 from gym.envs.registration import register
 import numpy as np
 from stable_baselines3.common.env_util import make_vec_env
-from dqn.dqn import DQN
+from dqn.dqn import CustomDQN as DQN
 from dqn.evaluation import evaluate_policy
 
 Matrix = List[List[int]]
@@ -25,7 +25,7 @@ register(
     max_episode_steps=200,
 )
 
-venv = make_vec_env("MultiSwapEnviorment-v0", n_envs=1, env_kwargs = {"depth_of_code": depth_of_code, "rows": rows, "cols": cols, "max_swaps_per_time_step": max_swaps_per_time_step})
+venv = make_vec_env("MultiSwapEnviorment-v0", n_envs=1, env_kwargs = {"depth": depth_of_code, "rows": rows, "cols": cols, "max_swaps_per_time_step": max_swaps_per_time_step})
 env = venv.envs[0]
 
 # Load the trained agent

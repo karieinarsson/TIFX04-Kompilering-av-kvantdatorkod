@@ -47,11 +47,11 @@ def main():
 #Our enviorment
 class swap_enviorment(Env):
     def __init__(self, depth: int, rows: int, cols: int, 
-            max_swaps_per_timestep: int = -1, timeout: int = 200) -> None:
+            max_swaps_per_time_step: int = -1, timeout: int = 200) -> None:
         self.depth = depth
         self.rows = rows
         self.cols = cols
-        if max_swaps_per_timestep < 0 or max_swaps_per_timestep > np.floor(self.rows * self.cols/2):
+        if max_swaps_per_time_step < 0 or max_swaps_per_time_step > np.floor(self.rows * self.cols/2):
             self.max_swaps_per_time_step = np.floor(self.rows * self.cols/2)
         else:
             self.max_swaps_per_time_step = max_swaps_per_time_step
