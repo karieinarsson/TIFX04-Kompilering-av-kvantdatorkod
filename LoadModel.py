@@ -10,14 +10,14 @@ from dqn.evaluation import evaluate_policy
 
 depth_of_code = 5
 rows = 3
-cols = 2
+cols = 3
 max_swaps_per_time_step = -1
 
 n_eval_episodes = 1000
 
 modelDir = "models/"
 
-modelName = "DQNModel(StateToValue).zip"
+modelName = "DQNModel(StateToValue,10mil_step).zip"
 #"DQNModel(StateToValue).zip"
 
 register(
