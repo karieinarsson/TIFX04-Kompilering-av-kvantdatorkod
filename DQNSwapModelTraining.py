@@ -1,6 +1,6 @@
 ## Update: Logs rollout, time and train to plot them in tensorboard using tensorboard --logdir '.\logdir\DQNModel(StateToValue)_[#nr]\' command.
 
-from MultiSwapEnviorment import swap_enviorment
+from MultiSwapEnvironment import swap_environment
 
 import numpy as np
 import os
@@ -49,18 +49,18 @@ n_eval_episodes = 200
 
 
 register(
-    id="MultiSwapEnviorment-v0",
-    entry_point="MultiSwapEnviorment:swap_enviorment",
+    id="MultiSwapEnvironment-v0",
+    entry_point="MultiSwapEnvironment:swap_environment",
     max_episode_steps=200,
 )
 
-venv = make_vec_env("MultiSwapEnviorment-v0", n_envs = 20, env_kwargs = {"depth": depth, "rows": rows, "cols": cols})
-env = swap_enviorment(depth, rows, cols)
+venv = make_vec_env("MultiSwapEnvironment-v0", n_envs = 20, env_kwargs = {"depth": depth, "rows": rows, "cols": cols})
+env = swap_environment(depth, rows, cols)
 
 eval_callback = EvalCallback(
         env, 
-        best_model_save_path='./logs/',
-        log_path='./logs/', 
+        best_model_save_path='./logdir/logs/',
+        log_path='./logdir/logs/', 
         eval_freq=500,
         deterministic=True,
         verbose = 0,

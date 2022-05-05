@@ -1,4 +1,4 @@
-from MultiSwapEnviorment import swap_enviorment
+from MultiSwapEnvironment import swap_environment
 from typing import List, Tuple
 from gym.envs.registration import register
 import numpy as np
@@ -20,12 +20,12 @@ modelDir = "models/"
 modelName = f"DQNModel({depth_of_code},{rows},{cols}).zip"
 
 register(
-    id="MultiSwapEnviorment-v0",
-    entry_point="MultiSwapEnviorment:swap_enviorment",
+    id="MultiSwapEnvironment-v0",
+    entry_point="MultiSwapEnvironment:swap_environment",
     max_episode_steps=200,
 )
 
-venv = make_vec_env("MultiSwapEnviorment-v0", n_envs=1, env_kwargs = {"depth": depth_of_code, "rows": rows, "cols": cols, "max_swaps_per_time_step": max_swaps_per_time_step})
+venv = make_vec_env("MultiSwapEnvironment-v0", n_envs=1, env_kwargs = {"depth": depth_of_code, "rows": rows, "cols": cols, "max_swaps_per_time_step": max_swaps_per_time_step})
 env = venv.envs[0]
 
 # Load the trained agent
@@ -127,7 +127,7 @@ env.render(mode = "human",render_list = render_list)
 
 #rewards = np.zeros(n_eval_episodes)
 #current_reward, episode = 0, 0
-#env = swap_enviorment(depth_of_code, rows, cols, max_swaps_per_time_step)
+#env = swap_environment(depth_of_code, rows, cols, max_swaps_per_time_step)
 #while episode < n_eval_episodes:
 #    action = env.action_space.sample()
 #    _, reward, done, _ = env.step(action)
