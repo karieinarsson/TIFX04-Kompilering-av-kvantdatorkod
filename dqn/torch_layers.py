@@ -29,10 +29,8 @@ class CustomCNN(BaseFeaturesExtractor):
         # Re-ordering will be done by pre-preprocessing or wrapper
         n_input_channels, depth_of_code, rows, cols = observation_space.shape
         self.cnn = nn.Sequential(
-            nn.Conv3d(n_input_channels, 32, kernel_size=(depth_of_code,2,2), padding=(0,1,1)),
+            nn.Conv3d(n_input_channels, 32, kernel_size=(depth_of_code,2,2)),
             nn.ReLU(),
-            #nn.Conv2d(32, 16, kernel_size=(2,2)),
-            #nn.ReLU(),
             nn.Flatten(),
         )
 

@@ -108,7 +108,7 @@ class CustomCnnPolicy(DQNPolicy):
                 value = self._predict(tensor_obs.reshape((len(action),x,d,r,c)), deterministic=deterministic)
 
             for i, o in enumerate(np.array(tensor_obs)):
-                value[i] += env.envs[0].reward_func(o, i)
+                value[i] += env.envs[0].reward_func(o, action_set[i])
             
             actions[idx] = action_set[np.argmax(value)]
             

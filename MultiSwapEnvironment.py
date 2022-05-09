@@ -75,6 +75,7 @@ class swap_environment(Env):
         self.max_episode_steps -= 1
         swap_matrix = self.possible_actions[action]
         self.state = np.matmul(self.state, swap_matrix)
+        self.code = np.matmul(self.code, swap_matrix)
         # Rewards
         reward = self.reward_func(self.state, action)
 
