@@ -1,6 +1,6 @@
 ## Update: Logs rollout, time and train to plot them in tensorboard using tensorboard --logdir '.\logdir\DQNModel(StateToValue)_[#nr]\' command.
 
-from MultiSwapEnviorment import swap_enviorment
+from MultiSwapEnvironment import swap_environment
 
 import numpy as np
 import os
@@ -20,15 +20,15 @@ from dqn.swap_vec_env import SwapVecEnv
 from dqn.dqn import DQN
 
 #env variables
-depth_of_code = 10
-rows = 2
-cols = 2
+depth = 10
+rows = 3
+cols = 3
 max_swaps_per_time_step = -1
 
 #model variables (previously 2e4)
 learning_starts = int(5e4)
 verbose = 1
-exploration_fraction = 0.5
+exploration_fraction = 0.1
 exploration_initial_eps = 1
 exploration_final_eps = 0.1
 batch_size = 512
@@ -39,7 +39,7 @@ gamma = 0.5
 train_freq = 4
 
 #training variables (previously 1e5)
-total_timesteps = int(1e6)
+total_timesteps = int(8e6)
 log_interval = 4
 
 #evaluation
@@ -47,13 +47,13 @@ n_eval_episodes = 200
 
 
 register(
-    id="MultiSwapEnviorment-v0",
-    entry_point="MultiSwapEnviorment:swap_enviorment",
+    id="MultiSwapEnvironment-v0",
+    entry_point="MultiSwapEnvironment:swap_environment",
     max_episode_steps=200,
 )
 
-venv = make_vec_env("MultiSwapEnviorment-v0", n_envs = 20, env_kwargs = {"depth_of_code": depth_of_code, "rows": rows, "cols": cols})
-env = swap_enviorment(depth_of_code, rows, cols)
+venv = make_vec_env("MultiSwapEnvironment-v0", n_envs = 20, env_kwargs = {"depth": depth, "rows": rows, "cols": cols})
+env = swap_environment(depth, rows, cols)
 
 eval_callback = EvalCallback(
         env, 
@@ -68,7 +68,7 @@ eval_callback = EvalCallback(
 
 # Defining agent name
 model_dir = "models/"
-model_name = f"DQNModel({depth_of_code},{rows},{cols})"
+model_name = f"DQNModel(goodkush)"
 logdir="logdir/"
 
 # Intantiate the agent
@@ -119,44 +119,3 @@ print(f"Mean reward random: {np.mean(rewards)}")
 mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=n_eval_episodes)
 
 print(f"Mean reward model: {mean_reward}")
-
-write_text=open(f"logdir/{model_name}_{len(os.listdir(logdir))}/{model_name}"+".txt","w+")
-write_text.write(
-    f"Model: {model_name} \r\n"+
-    "\r\n"+
-    
-    "Environment Variables \r\n"+
-    f"depth_of_code = {depth_of_code}\r\n"+
-    f"rows = {rows}\r\n"+
-    f"cols = {cols}\r\n"+
-    f"max_swaps_per_time_step = {max_swaps_per_time_step}\r\n"+
-    "\r\n"+
-    
-    "Model Variables \r\n"+
-    f"learning_starts = {learning_starts}\r\n"+
-    f"verbose = {verbose}\r\n"+
-    f"exploration_fraction = {exploration_fraction}\r\n"+
-    f"exploration_initial_eps = {exploration_initial_eps}\r\n"+
-    f"exploration_final_eps = {exploration_final_eps}\r\n"+
-    f"batch_size = {batch_size}\r\n"+
-    f"learning_rate = {learning_rate}\r\n"+
-    f"target_update_interval = {target_update_interval}\r\n"+
-    f"tau = {tau}\r\n"+
-    f"gamma = {gamma}\r\n"+
-    f"train_freq = {train_freq}\r\n"+
-    "\r\n"+
-    
-    "Training Variables \r\n"+
-    f"total_timesteps = {total_timesteps}\r\n"+
-    f"log_interval = {log_interval}\r\n"+
-    "\r\n"+
-    
-    "Evaluation \r\n"+
-    f"n_eval_episodes = {n_eval_episodes}\r\n"+
-    "\r\n"+
-    
-    "Results \r\n"+
-    f"np.mean(rewards) = {np.mean(rewards)}\r\n"+
-    f"mean_reward = {mean_reward}\r\n")
-
-write_text.close()

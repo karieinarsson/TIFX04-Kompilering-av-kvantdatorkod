@@ -207,7 +207,7 @@ class DQNPolicy(BasePolicy):
             x, d, r, c = obs.shape
             obs = obs.reshape((d, r*c))
             if env.envs[0].is_executable_state(obs):
-                idx_parallell_actions = env.envs[0].get_parallell_actions(obs)
+                idx_parallell_actions, _ = env.envs[0].get_parallell_actions(obs)
                 
                 parallell_actions = np.array([possible_actions[i] for i in idx_parallell_actions])
 
@@ -226,7 +226,7 @@ class DQNPolicy(BasePolicy):
                 value = self._predict(tensor_obs, deterministic=deterministic)
                 
             for i, o in enumerate(new_obs):
-                value[i] += env.envs[0].reward_func(o)
+                value[i] += env.envs[0].reward_func(o, i)
             
             actions[idx] = np.argmax(value)
         
